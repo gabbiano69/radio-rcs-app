@@ -1,0 +1,16 @@
+{
+  "placeholderImages": [
+    {
+      "id": "radio-logo",
+      "description": "Radio Station Logo",
+      "imageUrl": "https://picsum.photos/seed/radio77/400/400",
+      "imageHint": "radio logo"
+    },
+    {
+      "id": "about-hero",
+      "description": "Radio Studio",
+      "imageUrl": "https://picsum.photos/seed/studio/1200/600",
+      "imageHint": "radio studio"
+    }
+  ]
+}

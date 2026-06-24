@@ -1,0 +1,22 @@
+{
+  "placeholderImages": [
+    {
+      "id": "radio-logo",
+      "description": "Logo Ufficiale Radio RCS Sicilia",
+      "imageUrl": "/logo-rcs.jpg",
+      "imageHint": "radio logo"
+    },
+    {
+      "id": "app-icon-512",
+      "description": "Icona App per Store",
+      "imageUrl": "/logo-rcs.jpg",
+      "imageHint": "app icon"
+    },
+    {
+      "id": "about-hero",
+      "description": "Studio di trasmissione Radio RCS Sicilia a Serradifalco",
+      "imageUrl": "https://picsum.photos/seed/rcs-studio-sicily/1200/600",
+      "imageHint": "radio studio"
+    }
+  ]
+}
