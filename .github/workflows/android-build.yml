@@ -23,7 +23,6 @@ jobs:
           java-version: '21'
           distribution: 'zulu'
 
-      // Note: Removed the cache step to ensure a clean environment if needed, but keeping the setup robust.
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
