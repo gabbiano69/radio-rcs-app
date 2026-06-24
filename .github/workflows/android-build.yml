@@ -1,3 +1,4 @@
+
 name: Build Android APK
 
 on:
@@ -16,7 +17,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -27,17 +27,22 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Build Next.js App
-        run: npm run static
+      - name: Build Web App
+        run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: 1
 
-      - name: Initialize Capacitor
+      - name: Capacitor Setup and Sync
         run: |
-          npx cap sync || npx cap add android
+          # Assicura che la cartella web esista prima del sync
+          mkdir -p out
+          # Se la cartella android non esiste, la aggiunge
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
           npx cap sync android
 
-      - name: Build APK (Debug)
+      - name: Build Android APK
         run: |
           cd android
           chmod +x gradlew
