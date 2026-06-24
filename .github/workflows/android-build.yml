@@ -12,26 +12,30 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: set up JDK 17
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'zulu'
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Build Next.js App
         run: npm run static
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
 
-      - name: Install Capacitor CLI
-        run: npm install @capacitor/cli @capacitor/android @capacitor/core
-
-      - name: Add Android Platform
-        run: npx cap add android
-
-      - name: Sync with Capacitor
-        run: npx cap sync android
+      - name: Initialize Capacitor
+        run: |
+          npx cap sync || npx cap add android
+          npx cap sync android
 
       - name: Build APK (Debug)
         run: |
