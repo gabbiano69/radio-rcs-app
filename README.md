@@ -1,33 +1,19 @@
 
 # Radio RCS Sicilia - App Ufficiale
 
-Progetto dell'app ufficiale di Radio RCS Sicilia, pronta per la pubblicazione su Android, iOS e Amazon Fire TV.
+Progetto dell'app ufficiale di Radio RCS Sicilia, configurata per la build automatica dell'APK via GitHub Actions.
 
-## 🚀 Come ottenere l'APK (Senza installare nulla)
+## 🚀 Come scaricare l'APK (Senza installare nulla)
 
-Se non hai Android Studio, segui questi passaggi per generare l'app nel cloud:
+1. **Vai su Actions**: Clicca sulla scheda **"Actions"** in alto nel tuo repository GitHub.
+2. **Seleziona la Build**: Clicca sull'ultimo processo chiamato **"Build Android APK"**.
+3. **Attendi**: Aspetta che tutti i passaggi diventino verdi (circa 5-7 minuti). Ignora eventuali avvisi gialli su Node.js, l'importante è il risultato finale.
+4. **Scarica**: Scorri in fondo alla pagina fino alla sezione **"Artifacts"** e clicca su **`app-debug.apk`**.
 
-1. **Crea il repository su GitHub**:
-   - **Repository name**: `radio-rcs-app`
-   - **Public**: Selezionato
-   - Clicca su **Create repository** (non aggiungere README o altro).
+## 📱 Note sui Costi Store
+- **Google Play**: $25 una tantum. L'app resta per sempre.
+- **Apple Store**: $99 all'anno. **ATTENZIONE**: Se non rinnovi l'abbonamento ogni anno, Apple rimuove l'app dallo store e non sarà più scaricabile dai nuovi utenti.
 
-2. **Carica i file**:
-   - Scarica il codice da questo editor (file .zip).
-   - Estrailo sul tuo PC.
-   - Trascina tutti i file (inclusa la cartella `.github`) dentro il tuo repository su GitHub.
-
-3. **Scarica l'APK**:
-   - Una volta caricati i file, clicca sulla scheda **"Actions"** in alto su GitHub.
-   - Vedrai un processo chiamato **"Build Android APK"**.
-   - Quando finisce (diventa verde), cliccaci sopra.
-   - Scorri in basso e troverai **"app-debug.apk"** pronto da scaricare.
-
-## 📱 Note per gli Store
-- **Android/Amazon**: L'APK generato è pronto per Fire TV e test su telefoni Android.
-- **Apple (iOS)**: Richiede un Mac e l'abbonamento Developer ($99/anno).
-- **HTTPS**: Ricorda che per la pubblicazione ufficiale, il tuo fornitore di streaming deve fornirti un link `https`.
-
-## 🛠 Info Tecniche
-- **Streaming URL**: http://sr10.inmystream.info:8049/stream
-- **Metadata URL**: http://sr10.inmystream.info:8049/7.html
+## 🛠 Supporto Tecnico
+- **Streaming URL**: `http://sr10.inmystream.info:8049/stream`
+- **Metadata**: Gestiti automaticamente tramite `allorigins`.

@@ -1,55 +1,21 @@
-'use server';
 /**
- * @fileOverview Un tool GenAI per generare slogan promozionali accattivanti per stazioni radio.
- *
- * - generateRadioSlogan - Funzione che gestisce il processo di generazione degli slogan.
+ * @fileOverview Un tool GenAI per generare slogan promozionali.
+ * NOTA: Disabilitato per la build statica dell'APK (Server Actions non supportate).
  */
 
-import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const GenerateRadioSloganInputSchema = z.object({
-  genre: z
-    .string()
-    .describe('Il genere della radio o il tema (es. Pop, Rock, Notizie Locali).'),
+export const GenerateRadioSloganInputSchema = z.object({
+  genre: z.string(),
 });
 export type GenerateRadioSloganInput = z.infer<typeof GenerateRadioSloganInputSchema>;
 
-const GenerateRadioSloganOutputSchema = z.object({
-  slogans: z
-    .array(z.string())
-    .describe('Un array di 5 slogan creativi e brevi per la radio.'),
+export const GenerateRadioSloganOutputSchema = z.object({
+  slogans: z.array(z.string()),
 });
 export type GenerateRadioSloganOutput = z.infer<typeof GenerateRadioSloganOutputSchema>;
 
-export async function generateRadioSlogan(
-  input: GenerateRadioSloganInput
-): Promise<GenerateRadioSloganOutput> {
-  return generateRadioSloganFlow(input);
+// Rimosso 'use server' e reso funzione sincrona di mock per evitare errori in build statica
+export async function generateRadioSlogan(input: GenerateRadioSloganInput): Promise<GenerateRadioSloganOutput> {
+  return { slogans: ["Slogan disponibile solo nella versione web cloud."] };
 }
-
-const prompt = ai.definePrompt({
-  name: 'generateRadioSloganPrompt',
-  input: {schema: GenerateRadioSloganInputSchema},
-  output: {schema: GenerateRadioSloganOutputSchema},
-  prompt: `Sei un esperto di marketing creativo specializzato in branding radiofonico.
-Il tuo compito è generare 5 slogan brevi, accattivanti e in lingua ITALIANA per una stazione radio.
-
-Il nome della radio è: Radio RCS Sicilia.
-Il genere/tema indicato dall'utente è: {{{genre}}}
-
-Crea slogan che trasmettano energia, sicilianità e professionalità.
-`,
-});
-
-const generateRadioSloganFlow = ai.defineFlow(
-  {
-    name: 'generateRadioSloganFlow',
-    inputSchema: GenerateRadioSloganInputSchema,
-    outputSchema: GenerateRadioSloganOutputSchema,
-  },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
-  }
-);

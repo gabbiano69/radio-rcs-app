@@ -1,3 +1,4 @@
+
 "use client"
 
 import React from 'react';
@@ -47,7 +48,7 @@ export function AudioPlayer() {
 
         <div 
           className={cn(
-            "relative w-40 h-40 sm:w-48 sm:h-48 rounded-full overflow-hidden shadow-[0_0_60px_rgba(225,29,72,0.15)] transition-all duration-1000 flex items-center justify-center border-[4px]",
+            "relative w-40 h-40 sm:w-48 sm:h-48 rounded-full overflow-hidden shadow-[0_0_60px_rgba(225,29,72,0.15)] transition-all duration-700 flex items-center justify-center border-[4px]",
             isPlaying ? "scale-105 border-primary/30" : "scale-100 border-white/5"
           )} 
           style={{ backgroundColor: '#000000' }}
@@ -59,8 +60,8 @@ export function AudioPlayer() {
               width={400}
               height={400}
               className={cn(
-                "object-contain transition-transform duration-[10000ms] ease-in-out",
-                isPlaying ? "scale-110" : "scale-100"
+                "object-contain transition-transform ease-in-out",
+                isPlaying ? "scale-110 duration-700" : "scale-100 duration-500"
               )}
               priority
             />
@@ -125,7 +126,7 @@ export function AudioPlayer() {
             className={cn(
               "w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-2xl transition-all active:scale-90 border-[4px] border-white/10",
               isPlaying ? "bg-white text-black" : "bg-primary text-white"
-            )}
+                )}
             onClick={togglePlay}
             disabled={isLoading}
           >
