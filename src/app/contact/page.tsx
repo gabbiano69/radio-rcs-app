@@ -45,12 +45,10 @@ export default function ContactPage() {
 
     setIsSubmitting(true);
 
-    // Costruisce il link mailto per l'invio tramite app esterna
     const subject = formData.subject || 'Contatto da App Radio RCS';
     const body = `Nome: ${formData.name}\nEmail: ${formData.email}\n\nMessaggio:\n${formData.message}`;
     const mailtoUrl = `mailto:radiorcs@hotmail.it?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     
-    // Simula un caricamento per feedback visivo
     setTimeout(() => {
       window.location.href = mailtoUrl;
       setIsSubmitting(false);
@@ -60,7 +58,6 @@ export default function ContactPage() {
         description: "Abbiamo aperto la tua app di posta per inviare il messaggio.",
       });
 
-      // Reset form
       setFormData({ name: '', email: '', subject: '', message: '' });
     }, 500);
   };
