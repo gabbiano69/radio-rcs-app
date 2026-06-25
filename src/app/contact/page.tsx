@@ -37,7 +37,7 @@ export default function ContactPage() {
     if (!formData.name || !formData.email || !formData.message) {
       toast({
         title: "Campi mancanti",
-        description: "Per favore, compila tutti i campi obbligatori.",
+        description: "Per favore, compila i campi obbligatori (Nome, Email, Messaggio).",
         variant: "destructive",
       });
       return;
@@ -46,7 +46,9 @@ export default function ContactPage() {
     setIsSubmitting(true);
 
     // Costruisce il link mailto per l'invio tramite app esterna
-    const mailtoUrl = `mailto:radiorcs@hotmail.it?subject=${encodeURIComponent(formData.subject || 'Contatto da App')}&body=${encodeURIComponent(`Nome: ${formData.name}\nEmail: ${formData.email}\n\nMessaggio:\n${formData.message}`)}`;
+    const subject = formData.subject || 'Contatto da App Radio RCS';
+    const body = `Nome: ${formData.name}\nEmail: ${formData.email}\n\nMessaggio:\n${formData.message}`;
+    const mailtoUrl = `mailto:radiorcs@hotmail.it?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     
     // Simula un caricamento per feedback visivo
     setTimeout(() => {
@@ -54,13 +56,13 @@ export default function ContactPage() {
       setIsSubmitting(false);
       
       toast({
-        title: "Messaggio preparato",
-        description: "Il tuo client email è stato aperto per confermare l'invio.",
+        title: "Apertura Email",
+        description: "Abbiamo aperto la tua app di posta per inviare il messaggio.",
       });
 
       // Reset form
       setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 800);
+    }, 500);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -110,23 +112,24 @@ export default function ContactPage() {
         <Card className="glass-morphism border-none shadow-2xl animate-in slide-in-from-right-4 duration-700">
           <CardHeader>
             <CardTitle>Inviaci un messaggio</CardTitle>
-            <CardDescription>Ti risponderemo al più presto.</CardDescription>
+            <CardDescription>Ti risponderemo al più presto via email.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Nome</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Nome *</label>
                   <Input 
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Il tuo nome" 
                     className="bg-white/5 border-white/10 focus:border-primary/50" 
+                    required
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email *</label>
                   <Input 
                     name="email"
                     type="email"
@@ -134,6 +137,7 @@ export default function ContactPage() {
                     onChange={handleChange}
                     placeholder="latua@email.com" 
                     className="bg-white/5 border-white/10 focus:border-primary/50" 
+                    required
                   />
                 </div>
               </div>
@@ -148,13 +152,14 @@ export default function ContactPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Messaggio</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Messaggio *</label>
                 <Textarea 
                   name="message"
                   value={formData.message}
                   onChange={handleChange}
                   placeholder="Scrivi qui il tuo messaggio..." 
                   className="min-h-[150px] bg-white/5 border-white/10 focus:border-primary/50" 
+                  required
                 />
               </div>
               <Button 
@@ -166,7 +171,7 @@ export default function ContactPage() {
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
-                    <Send size={18} /> Invia Messaggio
+                    <Send size={18} /> Prepara Email
                   </>
                 )}
               </Button>
