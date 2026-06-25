@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 interface NowPlaying {
   artist: string;
   title: string;
+  coverUrl?: string;
 }
 
 interface AudioContextType {
@@ -65,17 +66,17 @@ export function AudioProvider({ children }: { children: ReactNode }) {
           
           if (fullTitle) {
             const songInfo = fullTitle.split(' - ');
-            if (songInfo.length >= 2) {
-              setNowPlaying({
-                artist: songInfo[0].trim(),
-                title: songInfo[1].trim()
-              });
-            } else {
-              setNowPlaying({
-                artist: 'Radio RCS Sicilia',
-                title: fullTitle
-              });
-            }
+            const artist = songInfo.length >= 2 ? songInfo[0].trim() : 'Radio RCS Sicilia';
+            const title = songInfo.length >= 2 ? songInfo[1].trim() : fullTitle;
+            
+            // Genera una cover URL deterministica basata sul titolo per simulare la locandina
+            const coverUrl = `https://picsum.photos/seed/${encodeURIComponent(fullTitle)}/400/400`;
+            
+            setNowPlaying({
+              artist,
+              title,
+              coverUrl
+            });
           }
         }
       }

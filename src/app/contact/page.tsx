@@ -54,8 +54,8 @@ export default function ContactPage() {
       setIsSubmitting(false);
       
       toast({
-        title: "Apertura Email",
-        description: "Abbiamo aperto la tua app di posta per inviare il messaggio.",
+        title: "Invio in corso",
+        description: "L'app di posta si aprirà tra un istante.",
       });
 
       setFormData({ name: '', email: '', subject: '', message: '' });
@@ -70,9 +70,9 @@ export default function ContactPage() {
   return (
     <div className="flex-1 max-w-5xl mx-auto w-full p-6 py-12">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-        <div className="space-y-8 animate-in slide-in-from-left-4 duration-700">
+        <div className="space-y-8">
           <div className="space-y-4">
-            <h1 className="text-4xl font-bold tracking-tight text-primary">Contatta Radio RCS Sicilia</h1>
+            <h1 className="text-4xl font-bold tracking-tight text-primary">Contattaci</h1>
             <p className="text-xl text-muted-foreground">
               La voce dell'isola è sempre pronta ad ascoltarti. Scrivici per pubblicità, dediche o informazioni.
             </p>
@@ -106,14 +106,14 @@ export default function ContactPage() {
           </div>
         </div>
 
-        <Card className="glass-morphism border-none shadow-2xl animate-in slide-in-from-right-4 duration-700">
+        <Card className="glass-morphism border-none shadow-2xl">
           <CardHeader>
             <CardTitle>Inviaci un messaggio</CardTitle>
             <CardDescription>Ti risponderemo al più presto via email.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Nome *</label>
                   <Input 
@@ -121,7 +121,7 @@ export default function ContactPage() {
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Il tuo nome" 
-                    className="bg-white/5 border-white/10 focus:border-primary/50" 
+                    className="bg-white/5 border-white/10" 
                     required
                   />
                 </div>
@@ -133,7 +133,7 @@ export default function ContactPage() {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="latua@email.com" 
-                    className="bg-white/5 border-white/10 focus:border-primary/50" 
+                    className="bg-white/5 border-white/10" 
                     required
                   />
                 </div>
@@ -145,7 +145,7 @@ export default function ContactPage() {
                   value={formData.subject}
                   onChange={handleChange}
                   placeholder="Richiesta brano, pubblicità..." 
-                  className="bg-white/5 border-white/10 focus:border-primary/50" 
+                  className="bg-white/5 border-white/10" 
                 />
               </div>
               <div className="space-y-2">
@@ -155,7 +155,7 @@ export default function ContactPage() {
                   value={formData.message}
                   onChange={handleChange}
                   placeholder="Scrivi qui il tuo messaggio..." 
-                  className="min-h-[150px] bg-white/5 border-white/10 focus:border-primary/50" 
+                  className="min-h-[150px] bg-white/5 border-white/10" 
                   required
                 />
               </div>
