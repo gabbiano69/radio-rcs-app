@@ -1,12 +1,23 @@
 "use client"
 
-import { Mail, Phone, MapPin, Instagram, Facebook, Youtube, Globe } from 'lucide-react';
+import { useState } from 'react';
+import { Mail, Phone, MapPin, Instagram, Facebook, Youtube, Globe, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ContactPage() {
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+
   const contactInfo = [
     { icon: Globe, label: 'Sito Web', value: 'www.rcsradio.it', href: 'https://www.rcsradio.it' },
     { icon: Mail, label: 'Email', value: 'radiorcs@hotmail.it', href: 'mailto:radiorcs@hotmail.it' },
@@ -19,6 +30,43 @@ export default function ContactPage() {
     { icon: Instagram, label: 'Instagram', href: 'https://www.instagram.com/' },
     { icon: Youtube, label: 'YouTube', href: 'https://www.youtube.com/channel/UCTlKWIycsPc7Wh5cPW03vOA' },
   ];
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name || !formData.email || !formData.message) {
+      toast({
+        title: "Campi mancanti",
+        description: "Per favore, compila tutti i campi obbligatori.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // Costruisce il link mailto per l'invio tramite app esterna
+    const mailtoUrl = `mailto:radiorcs@hotmail.it?subject=${encodeURIComponent(formData.subject || 'Contatto da App')}&body=${encodeURIComponent(`Nome: ${formData.name}\nEmail: ${formData.email}\n\nMessaggio:\n${formData.message}`)}`;
+    
+    // Simula un caricamento per feedback visivo
+    setTimeout(() => {
+      window.location.href = mailtoUrl;
+      setIsSubmitting(false);
+      
+      toast({
+        title: "Messaggio preparato",
+        description: "Il tuo client email è stato aperto per confermare l'invio.",
+      });
+
+      // Reset form
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    }, 800);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   return (
     <div className="flex-1 max-w-5xl mx-auto w-full p-6 py-12">
@@ -64,28 +112,65 @@ export default function ContactPage() {
             <CardTitle>Inviaci un messaggio</CardTitle>
             <CardDescription>Ti risponderemo al più presto.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Nome</label>
-                <Input placeholder="Il tuo nome" className="bg-white/5 border-white/10" />
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Nome</label>
+                  <Input 
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="Il tuo nome" 
+                    className="bg-white/5 border-white/10 focus:border-primary/50" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email</label>
+                  <Input 
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="latua@email.com" 
+                    className="bg-white/5 border-white/10 focus:border-primary/50" 
+                  />
+                </div>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email</label>
-                <Input placeholder="latua@email.com" className="bg-white/5 border-white/10" />
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Oggetto</label>
+                <Input 
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleChange}
+                  placeholder="Richiesta brano, pubblicità..." 
+                  className="bg-white/5 border-white/10 focus:border-primary/50" 
+                />
               </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Oggetto</label>
-              <Input placeholder="Richiesta brano, pubblicità..." className="bg-white/5 border-white/10" />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Messaggio</label>
-              <Textarea placeholder="Scrivi qui il tuo messaggio..." className="min-h-[150px] bg-white/5 border-white/10" />
-            </div>
-            <Button className="w-full h-12 text-lg font-bold bg-primary hover:bg-primary/90">
-              Invia Messaggio
-            </Button>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Messaggio</label>
+                <Textarea 
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  placeholder="Scrivi qui il tuo messaggio..." 
+                  className="min-h-[150px] bg-white/5 border-white/10 focus:border-primary/50" 
+                />
+              </div>
+              <Button 
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full h-12 text-lg font-bold bg-primary hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
+              >
+                {isSubmitting ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Send size={18} /> Invia Messaggio
+                  </>
+                )}
+              </Button>
+            </form>
           </CardContent>
         </Card>
       </div>

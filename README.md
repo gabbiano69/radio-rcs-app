@@ -1,19 +1,19 @@
 
 # Radio RCS Sicilia - App Ufficiale
 
-Progetto dell'app ufficiale di Radio RCS Sicilia, configurata per la build automatica dell'APK via GitHub Actions.
+Progetto dell'app ufficiale di Radio RCS Sicilia. L'APK viene generato automaticamente ogni volta che vengono salvate modifiche su GitHub.
 
-## 🚀 Come scaricare l'APK (Senza installare nulla)
+## 📱 Come scaricare l'APK aggiornato
+1. Vai nella scheda **"Actions"** del tuo repository GitHub.
+2. Clicca sull'ultimo processo chiamato **"Build Android APK"** (quello con il segno di spunta verde ✅).
+3. Scorri in fondo alla pagina fino alla sezione **"Artifacts"**.
+4. Clicca su **`app-debug.apk`** per scaricare l'installatore sul tuo PC o direttamente sul tuo smartphone Android.
 
-1. **Vai su Actions**: Clicca sulla scheda **"Actions"** in alto nel tuo repository GitHub.
-2. **Seleziona la Build**: Clicca sull'ultimo processo chiamato **"Build Android APK"**.
-3. **Attendi**: Aspetta che tutti i passaggi diventino verdi (circa 5-7 minuti). Ignora eventuali avvisi gialli su Node.js, l'importante è il risultato finale.
-4. **Scarica**: Scorri in fondo alla pagina fino alla sezione **"Artifacts"** e clicca su **`app-debug.apk`**.
-
-## 📱 Note sui Costi Store
-- **Google Play**: $25 una tantum. L'app resta per sempre.
-- **Apple Store**: $99 all'anno. **ATTENZIONE**: Se non rinnovi l'abbonamento ogni anno, Apple rimuove l'app dallo store e non sarà più scaricabile dai nuovi utenti.
+## 🚀 Note per l'installazione
+- Essendo un'app creata da te, Android potrebbe mostrare un avviso "Sorgente sconosciuta" o "Play Protect". Clicca su **"Installa comunque"**.
+- Per lo streaming: assicurati che il telefono sia connesso a internet. L'app gestisce automaticamente la riconnessione.
 
 ## 🛠 Supporto Tecnico
 - **Streaming URL**: `http://sr10.inmystream.info:8049/stream`
-- **Metadata**: Gestiti automaticamente tramite `allorigins`.
+- **Metadata**: I titoli delle canzoni vengono recuperati ogni 10 secondi tramite il servizio AllOrigins.
+- **Tecnologia**: Next.js + Tailwind CSS + Capacitor 7 + Java 21.
