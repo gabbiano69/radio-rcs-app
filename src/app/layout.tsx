@@ -1,4 +1,3 @@
-
 import type {Metadata, Viewport} from 'next';
 import './globals.css';
 import {Navigation} from '@/components/Navigation';
@@ -10,6 +9,10 @@ export const metadata: Metadata = {
   title: 'Radio RCS Sicilia - I Grandi Successi',
   description: 'Radio RCS Sicilia è una storica emittente radiofonica locale siciliana, ascoltata a livello Nazionale e Internazionale grazie allo streaming ufficiale.',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/logo-rcs.jpg',
+    apple: '/logo-rcs.jpg',
+  },
   appleWebApp: {
     title: 'Radio RCS',
     statusBarStyle: 'black-translucent',
@@ -54,5 +57,3 @@ export default function RootLayout({
         </AudioProvider>
       </body>
     </html>
-  );
-}
