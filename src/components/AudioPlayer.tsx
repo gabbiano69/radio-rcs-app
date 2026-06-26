@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useAudio } from '@/context/AudioContext';
+import { useToast } from '@/hooks/use-toast';
+import { Share } from '@capacitor/share';
 
 export function AudioPlayer() {
   const { 
@@ -22,42 +24,70 @@ export function AudioPlayer() {
     setVolume, 
     setIsMuted 
   } = useAudio();
+  const { toast } = useToast();
 
-  const handleShare = () => {
-    if (navigator.share) {
-      const shareTitle = 'Radio RCS Sicilia - I Grandi Successi';
-      const shareText = isPlaying 
-        ? `📻 Sto ascoltando "${nowPlaying.title} ${nowPlaying.artist ? 'di ' + nowPlaying.artist : ''}" su Radio RCS Sicilia! Ascoltala anche tu:` 
-        : '📻 Ascolta Radio RCS Sicilia - I Grandi Successi in streaming ovunque tu sia:';
-      
-      navigator.share({
-        title: shareTitle,
-        text: shareText,
-        url: 'https://www.rcsradio.it',
-      }).catch(() => {
-        // Silenzioso
+  const handleShare = async () => {
+    const shareTitle = 'Radio RCS Sicilia - I Grandi Successi';
+    const shareText = isPlaying 
+      ? `📻 Sto ascoltando "${nowPlaying.title} ${nowPlaying.artist ? 'di ' + nowPlaying.artist : ''}" su Radio RCS Sicilia! Ascoltala anche tu:` 
+      : '📻 Ascolta Radio RCS Sicilia - I Grandi Successi in streaming ovunque tu sia:';
+    const shareUrl = 'https://www.rcsradio.it';
+
+    try {
+      // Prova con il plugin nativo di Capacitor
+      const canShare = await Share.canShare();
+      if (canShare.value) {
+        await Share.share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl,
+          dialogTitle: 'Condividi Radio RCS',
+        });
+      } else {
+        throw new Error('Native share not available');
+      }
+    } catch (err) {
+      // Fallback 1: navigator.share standard
+      if (navigator.share) {
+        navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl,
+        }).catch(() => {
+          // Fallback 2: Copia negli appunti
+          copyToClipboard(shareUrl);
+        });
+      } else {
+        // Fallback 2: Copia negli appunti
+        copyToClipboard(shareUrl);
+      }
+    }
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Link copiato!",
+        description: "Il link al sito è stato copiato negli appunti.",
+      });
+    } catch (err) {
+      toast({
+        title: "Errore",
+        description: "Non è stato possibile copiare il link.",
+        variant: "destructive"
       });
     }
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto flex flex-col items-center gap-4 sm:gap-6 p-2">
-      {/* Sezione Logo con Visualizer */}
-      <div className="relative flex flex-col items-center mt-6">
-        {isPlaying && (
-          <div className="absolute -top-10 flex items-end gap-1.5 h-8">
-            <div className="visualizer-bar w-1.5" />
-            <div className="visualizer-bar w-1.5" style={{ animationDelay: '0.2s' }} />
-            <div className="visualizer-bar w-1.5" style={{ animationDelay: '0.4s' }} />
-            <div className="visualizer-bar w-1.5" style={{ animationDelay: '0.1s' }} />
-            <div className="visualizer-bar w-1.5" style={{ animationDelay: '0.3s' }} />
-          </div>
-        )}
-
+    <div className="w-full max-w-xl mx-auto flex flex-col items-center gap-4 p-2">
+      {/* Sezione Logo - Margine superiore a 0 */}
+      <div className="relative flex flex-col items-center mt-0">
         <div 
           className={cn(
-            "relative w-28 h-28 sm:w-40 sm:h-40 rounded-full overflow-hidden shadow-[0_0_50px_rgba(225,29,72,0.2)] transition-all duration-700 flex items-center justify-center border-[3px]",
-            isPlaying ? "scale-105 border-primary/50" : "scale-100 border-white/5"
+            "relative w-36 h-36 sm:w-48 sm:h-48 rounded-full overflow-hidden shadow-[0_0_50px_rgba(225,29,72,0.15)] transition-all duration-700 flex items-center justify-center border-[3px]",
+            isPlaying ? "scale-105 border-primary/40" : "scale-100 border-white/5"
           )} 
           style={{ backgroundColor: '#000000' }}
         >
@@ -82,7 +112,7 @@ export function AudioPlayer() {
         </div>
       </div>
 
-      {/* Titolo e Badge */}
+      {/* Titolo Slogan */}
       <div className="text-center space-y-2">
         <h2 className="text-[14px] sm:text-[18px] font-black tracking-[0.2em] text-white italic">
           #LaRadioOltreConfine
@@ -92,7 +122,7 @@ export function AudioPlayer() {
           <Badge 
             variant="outline" 
             className={cn(
-              "px-6 py-2 uppercase tracking-widest text-[11px] sm:text-[14px] font-black transition-all duration-500",
+              "px-6 py-1.5 uppercase tracking-widest text-[11px] sm:text-[14px] font-black transition-all duration-500",
               isPlaying 
                 ? "border-primary bg-primary/20 text-primary animate-pulse" 
                 : "border-white/10 text-white/20"
@@ -100,17 +130,17 @@ export function AudioPlayer() {
           >
             {isPlaying ? "ON AIR" : "OFFLINE"}
           </Badge>
-          <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full w-9 h-9 text-muted-foreground/60 hover:text-primary bg-white/5 border border-white/5">
-            <Share2 size={18} />
+          <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full w-8 h-8 text-muted-foreground/60 hover:text-primary bg-white/5 border border-white/5">
+            <Share2 size={16} />
           </Button>
         </div>
       </div>
 
-      {/* Sezione Brano in onda con Locandina */}
-      <div className="w-full flex flex-col items-center min-h-[140px] sm:min-h-[180px] justify-center">
+      {/* Sezione Brano in onda - Immagine più grande */}
+      <div className="w-full flex flex-col items-center justify-center min-h-[180px]">
         {isPlaying ? (
           <div className="flex flex-col items-center animate-in fade-in slide-in-from-bottom-2 duration-700">
-            <div className="mb-3 relative w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden shadow-2xl border border-white/10 ring-4 ring-primary/5">
+            <div className="mb-3 relative w-40 h-40 sm:w-48 sm:h-48 rounded-2xl overflow-hidden shadow-2xl border border-white/10 ring-4 ring-primary/5">
               <Image 
                 src={nowPlaying.coverUrl || '/logo-rcs.jpg'} 
                 alt="Locandina"
@@ -135,8 +165,8 @@ export function AudioPlayer() {
         )}
       </div>
 
-      {/* Pannello Controlli */}
-      <div className="glass-morphism rounded-[2rem] p-4 w-full max-w-[300px] space-y-4 border-white/5 shadow-2xl mb-6">
+      {/* Pannello Controlli - Margine mt-12 per scenderlo un po' */}
+      <div className="mt-12 mb-6 glass-morphism rounded-[2rem] p-4 w-full max-w-[280px] space-y-4 border-white/5 shadow-2xl">
         <div className="flex items-center justify-center gap-6">
           <Button
             size="icon"

@@ -25,7 +25,8 @@ interface AudioContextType {
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
-const STREAM_URL = "http://sr10.inmystream.info:8049/stream";
+// URL HTTPS ufficiale fornito dall'amministratore
+const STREAM_URL = "https://sr10.inmystream.it/proxy/radiorcs?mp=/stream";
 
 export function AudioProvider({ children }: { children: ReactNode }) {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -53,7 +54,9 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const fetchMetadata = async () => {
     try {
       const timestamp = new Date().getTime();
-      const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('http://sr10.inmystream.info:8049/7.html')}&_=${timestamp}`);
+      // Cerchiamo i metadati usando lo stesso server proxy HTTPS per massima compatibilità
+      const metadataUrl = "https://sr10.inmystream.it/proxy/radiorcs?mp=/7.html";
+      const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(metadataUrl)}&_=${timestamp}`);
       const data = await response.json();
       
       if (data.contents) {
@@ -69,7 +72,6 @@ export function AudioProvider({ children }: { children: ReactNode }) {
             const artist = songInfo.length >= 2 ? songInfo[0].trim() : 'Radio RCS Sicilia';
             const title = songInfo.length >= 2 ? songInfo[1].trim() : fullTitle;
             
-            // Genera una cover URL deterministica basata sul titolo per simulare la locandina
             const coverUrl = `https://picsum.photos/seed/${encodeURIComponent(fullTitle)}/400/400`;
             
             setNowPlaying({
@@ -81,7 +83,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         }
       }
     } catch (error) {
-      // Silenzioso
+      // Errore silenzioso: l'utente non viene disturbato se il server metadati è lento
     }
   };
 
@@ -131,14 +133,11 @@ export function AudioProvider({ children }: { children: ReactNode }) {
             setIsLoading(false);
             setIsPlaying(false);
             
-            if (window.location.protocol === 'https:' && STREAM_URL.startsWith('http:')) {
-              toast({
-                title: "Contenuto bloccato",
-                description: "Per ascoltare la radio in HTTPS, devi consentire i 'contenuti non sicuri' nelle impostazioni del browser.",
-                variant: "destructive",
-                duration: 8000,
-              });
-            }
+            toast({
+              title: "Errore di connessione",
+              description: "Impossibile avviare lo streaming. Assicurati di essere connesso a Internet.",
+              variant: "destructive",
+            });
           });
       }
     }

@@ -1,3 +1,4 @@
+
 {
   "placeholderImages": [
     {
@@ -14,9 +15,15 @@
     },
     {
       "id": "about-hero",
-      "description": "Studio di trasmissione Radio RCS Sicilia a Serradifalco",
-      "imageUrl": "https://picsum.photos/seed/rcs-studio-sicily/1200/600",
-      "imageHint": "radio studio"
+      "description": "Panorama mozzafiato della Sicilia",
+      "imageUrl": "/sicilia-panorama.jpg",
+      "imageHint": "sicily landscape"
+    },
+    {
+      "id": "about-banner",
+      "description": "Banner Promozionale Radio RCS Sicilia",
+      "imageUrl": "/banner.jpg",
+      "imageHint": "radio banner"
     }
   ]
 }

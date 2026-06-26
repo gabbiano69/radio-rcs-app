@@ -1,3 +1,4 @@
+
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
@@ -6,7 +7,10 @@ const config: CapacitorConfig = {
   webDir: 'out',
   server: {
     androidScheme: 'https',
-    allowNavigation: ['sr10.inmystream.info']
+    allowNavigation: [
+      'sr10.inmystream.info',
+      'sr10.inmystream.it'
+    ]
   },
   android: {
     allowMixedContent: true

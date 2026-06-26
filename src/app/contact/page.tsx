@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from 'react';
@@ -27,7 +28,7 @@ export default function ContactPage() {
 
   const socialLinks = [
     { icon: Facebook, label: 'Facebook', href: 'https://www.facebook.com/RCS.radio' },
-    { icon: Instagram, label: 'Instagram', href: 'https://www.instagram.com/' },
+    { icon: Instagram, label: 'Instagram', href: 'https://www.instagram.com/radio_rcs_sicilia/' },
     { icon: Youtube, label: 'YouTube', href: 'https://www.youtube.com/channel/UCTlKWIycsPc7Wh5cPW03vOA' },
   ];
 
