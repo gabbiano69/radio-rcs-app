@@ -34,7 +34,6 @@ export function AudioPlayer() {
     const shareUrl = 'https://www.rcsradio.it';
 
     try {
-      // Prova con il plugin nativo di Capacitor
       const canShare = await Share.canShare();
       if (canShare.value) {
         await Share.share({
@@ -47,18 +46,15 @@ export function AudioPlayer() {
         throw new Error('Native share not available');
       }
     } catch (err) {
-      // Fallback 1: navigator.share standard
       if (navigator.share) {
         navigator.share({
           title: shareTitle,
           text: shareText,
           url: shareUrl,
         }).catch(() => {
-          // Fallback 2: Copia negli appunti
           copyToClipboard(shareUrl);
         });
       } else {
-        // Fallback 2: Copia negli appunti
         copyToClipboard(shareUrl);
       }
     }
@@ -81,48 +77,45 @@ export function AudioPlayer() {
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto flex flex-col items-center gap-4 p-2">
-      {/* Sezione Logo - Margine superiore a 0 */}
-      <div className="relative flex flex-col items-center mt-0">
+    <div className="w-full flex-1 flex flex-col items-center justify-between py-2 gap-4">
+      {/* LOGO STAZIONE - Ancorato in alto */}
+      <div className="relative flex flex-col items-center w-full shrink-0">
         <div 
           className={cn(
-            "relative w-36 h-36 sm:w-48 sm:h-48 rounded-full overflow-hidden shadow-[0_0_50px_rgba(225,29,72,0.15)] transition-all duration-700 flex items-center justify-center border-[3px]",
-            isPlaying ? "scale-105 border-primary/40" : "scale-100 border-white/5"
+            "relative w-[40vw] h-[40vw] max-w-[180px] max-h-[180px] sm:max-w-[200px] sm:max-h-[200px] md:max-w-[220px] md:max-h-[220px] transition-all duration-700 flex items-center justify-center bg-transparent",
+            isPlaying ? "scale-105" : "scale-100"
           )} 
-          style={{ backgroundColor: '#000000' }}
         >
-          <div className="relative w-full h-full flex items-center justify-center">
-            <Image
-              src="/logo-rcs.jpg"
-              alt="Radio RCS Logo"
-              width={400}
-              height={400}
-              className={cn(
-                "object-contain transition-transform ease-in-out",
-                isPlaying ? "scale-110 duration-700" : "scale-100 duration-500"
-              )}
-              priority
-            />
-          </div>
+          <Image
+            src="/logo-rcs.jpg"
+            alt="Radio RCS Logo"
+            width={400}
+            height={400}
+            className={cn(
+              "object-contain w-full h-full transition-transform ease-in-out",
+              isPlaying ? "scale-110 duration-700" : "scale-100 duration-500"
+            )}
+            priority
+          />
           {isLoading && (
-            <div className="absolute inset-0 bg-black/80 flex items-center justify-center backdrop-blur-sm rounded-full">
+            <div className="absolute inset-0 bg-background/60 flex items-center justify-center backdrop-blur-sm rounded-full">
               <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
           )}
         </div>
       </div>
 
-      {/* Titolo Slogan */}
-      <div className="text-center space-y-2">
-        <h2 className="text-[14px] sm:text-[18px] font-black tracking-[0.2em] text-white italic">
+      {/* SLOGAN E BADGE - Compatti */}
+      <div className="text-center space-y-2 w-full shrink-0 mt-[-10px]">
+        <h2 className="text-[10px] sm:text-sm font-black tracking-[0.2em] text-white italic uppercase drop-shadow-lg opacity-80">
           #LaRadioOltreConfine
         </h2>
 
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex items-center justify-center gap-3">
           <Badge 
             variant="outline" 
             className={cn(
-              "px-6 py-1.5 uppercase tracking-widest text-[11px] sm:text-[14px] font-black transition-all duration-500",
+              "px-3 py-0.5 text-[9px] sm:text-[10px] font-black transition-all duration-500",
               isPlaying 
                 ? "border-primary bg-primary/20 text-primary animate-pulse" 
                 : "border-white/10 text-white/20"
@@ -130,78 +123,87 @@ export function AudioPlayer() {
           >
             {isPlaying ? "ON AIR" : "OFFLINE"}
           </Badge>
-          <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full w-8 h-8 text-muted-foreground/60 hover:text-primary bg-white/5 border border-white/5">
-            <Share2 size={16} />
+          <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full w-8 h-8 text-muted-foreground/60 hover:text-primary bg-white/5 border border-white/10">
+            <Share2 size={14} />
           </Button>
         </div>
       </div>
 
-      {/* Sezione Brano in onda - Immagine più grande */}
-      <div className="w-full flex flex-col items-center justify-center min-h-[180px]">
+      {/* SEZIONE BRANO IN ONDA - Estremamente flessibile e responsiva */}
+      <div className="flex-1 flex flex-col items-center justify-center w-full min-h-[180px] max-h-[45vh] py-4">
         {isPlaying ? (
-          <div className="flex flex-col items-center animate-in fade-in slide-in-from-bottom-2 duration-700">
-            <div className="mb-3 relative w-40 h-40 sm:w-48 sm:h-48 rounded-2xl overflow-hidden shadow-2xl border border-white/10 ring-4 ring-primary/5">
+          <div className="flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-700 w-full px-4">
+            <div className="mb-4 relative w-[45vw] h-[45vw] max-w-[160px] max-h-[160px] sm:max-w-[220px] sm:max-h-[220px] md:max-w-[280px] md:max-h-[280px] aspect-square overflow-hidden bg-transparent shrink-0">
               <Image 
                 src={nowPlaying.coverUrl || '/logo-rcs.jpg'} 
-                alt="Locandina"
+                alt="Cover"
                 fill
-                className="object-cover"
+                className={cn(
+                  "transition-all duration-500",
+                  nowPlaying.coverUrl ? "object-cover rounded-2xl shadow-2xl" : "object-contain p-2"
+                )}
               />
             </div>
             
-            <p className="text-primary font-black text-lg sm:text-2xl leading-tight uppercase italic line-clamp-1 px-4 drop-shadow-2xl tracking-tighter text-center">
-              {nowPlaying.title}
-            </p>
-            {nowPlaying.artist && (
-              <p className="text-muted-foreground/80 font-bold text-sm sm:text-base flex items-center gap-2 mt-1">
-                <Music size={14} className="text-primary/40" /> {nowPlaying.artist}
+            <div className="space-y-1 text-center max-w-2xl mx-auto">
+              <p className="text-primary font-black text-base sm:text-xl md:text-2xl leading-tight uppercase italic drop-shadow-2xl tracking-tighter line-clamp-2">
+                {nowPlaying.title}
               </p>
-            )}
+              {nowPlaying.artist && (
+                <p className="text-muted-foreground font-bold text-[10px] sm:text-sm flex items-center justify-center gap-2">
+                  <Music size={12} className="text-primary/60" /> {nowPlaying.artist}
+                </p>
+              )}
+            </div>
           </div>
         ) : (
-          <p className="text-muted-foreground/20 font-medium text-[10px] italic tracking-[0.3em] uppercase">
-            Pronto all'ascolto...
-          </p>
+          <div className="flex flex-col items-center gap-2 opacity-20">
+             <Activity size={24} className="mb-1" />
+             <p className="font-medium text-[9px] sm:text-xs italic tracking-[0.3em] uppercase text-center">
+              Pronto all'ascolto...
+            </p>
+          </div>
         )}
       </div>
 
-      {/* Pannello Controlli - Margine mt-12 per scenderlo un po' */}
-      <div className="mt-12 mb-6 glass-morphism rounded-[2rem] p-4 w-full max-w-[280px] space-y-4 border-white/5 shadow-2xl">
-        <div className="flex items-center justify-center gap-6">
+      {/* CONTROLLI - Ancorati in basso */}
+      <div className="w-full max-w-[320px] sm:max-w-md lg:max-w-lg glass-morphism rounded-[2.5rem] p-4 sm:p-5 mb-1 border-white/10 shadow-2xl shrink-0">
+        <div className="flex items-center justify-between gap-4 mb-4">
           <Button
             size="icon"
             variant="ghost"
-            className="w-8 h-8 rounded-full border border-white/5 text-muted-foreground/40 hover:text-destructive transition-colors"
+            className="w-10 h-10 rounded-full border border-white/5 text-muted-foreground/40 hover:text-destructive transition-colors"
             onClick={stop}
           >
-            <Square className="w-3 h-3 fill-current" />
+            <Square className="w-4 h-4 fill-current" />
           </Button>
 
           <Button
             size="icon"
             className={cn(
-              "w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-2xl transition-all active:scale-90 border-[4px] border-white/10",
-              isPlaying ? "bg-white text-black" : "bg-primary text-white"
+              "w-16 h-16 sm:w-18 sm:h-18 rounded-full shadow-2xl transition-all active:scale-95 border-[4px] border-white/10",
+              isPlaying ? "bg-white text-black hover:bg-white/90" : "bg-primary text-white hover:bg-primary/90"
             )}
             onClick={togglePlay}
             disabled={isLoading}
           >
-            {isPlaying ? <Pause size={28} className="fill-current" /> : <Play size={28} className="ml-1 fill-current" />}
+            {isPlaying ? <Pause size={32} className="fill-current" /> : <Play size={32} className="ml-1.5 fill-current" />}
           </Button>
 
-          <div className="w-8 h-8 flex items-center justify-center">
-             {isPlaying && <Activity size={18} className="text-primary animate-pulse opacity-50" />}
+          <div className="w-10 h-10 flex items-center justify-center">
+             {isPlaying && <Activity size={20} className="text-primary animate-pulse opacity-60" />}
           </div>
         </div>
 
-        <div className="flex items-center gap-3 max-w-[130px] mx-auto opacity-70">
+        {/* VOLUME */}
+        <div className="flex items-center gap-4 px-2">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setIsMuted(!isMuted)}
-            className="text-muted-foreground hover:text-primary w-6 h-6 shrink-0"
+            className="text-muted-foreground hover:text-primary w-8 h-8 shrink-0"
           >
-            {isMuted || volume === 0 ? <VolumeX size={14} /> : <Volume2 size={14} />}
+            {isMuted || volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
           </Button>
           <div className="flex-1">
             <Slider

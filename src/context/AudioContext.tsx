@@ -54,7 +54,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const fetchMetadata = async () => {
     try {
       const timestamp = new Date().getTime();
-      // Cerchiamo i metadati usando lo stesso server proxy HTTPS per massima compatibilità
+      // Cerchiamo i metadati usando lo stesso server proxy HTTPS
       const metadataUrl = "https://sr10.inmystream.it/proxy/radiorcs?mp=/7.html";
       const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(metadataUrl)}&_=${timestamp}`);
       const data = await response.json();
@@ -72,7 +72,22 @@ export function AudioProvider({ children }: { children: ReactNode }) {
             const artist = songInfo.length >= 2 ? songInfo[0].trim() : 'Radio RCS Sicilia';
             const title = songInfo.length >= 2 ? songInfo[1].trim() : fullTitle;
             
-            const coverUrl = `https://picsum.photos/seed/${encodeURIComponent(fullTitle)}/400/400`;
+            // Step 1: Default fallback image (picsum o logo)
+            let coverUrl = `https://picsum.photos/seed/${encodeURIComponent(fullTitle)}/400/400`;
+            
+            // Step 2: Tentativo di recupero copertina REALE tramite iTunes API (Gratuito)
+            try {
+              const searchTerm = encodeURIComponent(`${artist} ${title}`);
+              const itunesResponse = await fetch(`https://itunes.apple.com/search?term=${searchTerm}&limit=1&media=music`);
+              const itunesData = await itunesResponse.json();
+              
+              if (itunesData.results && itunesData.results.length > 0) {
+                // Sostituiamo l'URL per avere una risoluzione 600x600 invece di 100x100
+                coverUrl = itunesData.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
+              }
+            } catch (e) {
+              console.warn("iTunes Cover fetch failed, using fallback.");
+            }
             
             setNowPlaying({
               artist,
