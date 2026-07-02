@@ -12,7 +12,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "static": "next build",
-    "icons": "capacitor-assets generate --android --icon-source public/logo-rcs.png"
+    "icons": "mkdir -p assets && cp public/logo-rcs.png assets/icon-only.png && capacitor-assets generate --android"
   },
   "dependencies": {
     "@capacitor/android": "^7.0.0",
