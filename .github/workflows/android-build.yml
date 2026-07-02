@@ -1,4 +1,5 @@
-name: Build Android APK
+
+name: Build Android APK & AAB + Web Export
 
 on:
   push:
@@ -27,6 +28,15 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
+      - name: Generate App Icons
+        run: |
+          if [ -f "public/logo-rcs.png" ]; then
+            npx @capacitor/assets generate --android --icon-source public/logo-rcs.png
+            echo "Icons generated successfully"
+          else
+            echo "Source icon (public/logo-rcs.png) not found, using defaults"
+          fi
+
       - name: Build Static Web App
         run: npm run build
         env:
@@ -40,27 +50,42 @@ jobs:
           fi
           npx cap sync android
 
-      - name: Patch Android Manifest for Cleartext Traffic
+      - name: Patch Android Manifest for Stores & Fire TV
         run: |
           MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
           if [ -f "$MANIFEST_PATH" ]; then
-            # Rimuove eventuali attributi esistenti per evitare duplicati e aggiunge quello corretto
-            sed -i 's/android:usesCleartextTraffic="[^"]*"//g' $MANIFEST_PATH
-            sed -i 's/<application/<application android:usesCleartextTraffic="true"/' $MANIFEST_PATH
-            echo "Manifest patched successfully with usesCleartextTraffic=true"
-          else
-            echo "Manifest not found at $MANIFEST_PATH"
-            exit 1
+            sed -i 's/<application/<application android:usesCleartextTraffic="true" android:banner="@mipmap\/ic_launcher"/' $MANIFEST_PATH
+            sed -i '/<\/manifest>/i \    <uses-feature android:name="android.hardware.touchscreen" android:required="false" \/>' $MANIFEST_PATH
+            sed -i '/<\/manifest>/i \    <uses-feature android:name="android.software.leanback" android:required="false" \/>' $MANIFEST_PATH
+            sed -i '/<category android:name="android.intent.category.LAUNCHER" \/>/a \                <category android:name="android.intent.category.LEANBACK_LAUNCHER" \/>' $MANIFEST_PATH
+            echo "Manifest patched"
           fi
 
-      - name: Build Android APK
+      - name: Build Android APK (Debug)
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
 
+      - name: Build Android AAB (Debug)
+        run: |
+          cd android
+          ./gradlew bundleDebug
+
+      - name: Upload Web Artifact (for Aruba)
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-site-out
+          path: out/
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug.apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: android-apk-debug
+          path: android/app/build/outputs/apk/debug/*.apk
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-aab-debug
+          path: android/app/build/outputs/bundle/debug/*.aab
