@@ -31,7 +31,11 @@ jobs:
       - name: Generate App Icons
         run: |
           if [ -f "public/logo-rcs.png" ]; then
-            npx @capacitor/assets generate --android --icon public/logo-rcs.png
+            mkdir -p assets
+            cp public/logo-rcs.png assets/icon-only.png
+            cp public/logo-rcs.png assets/icon-foreground.png
+            cp public/logo-rcs.png assets/icon-background.png
+            npx @capacitor/assets generate --android
             echo "Icons generated successfully"
           else
             echo "Source icon (public/logo-rcs.png) not found, using defaults"
@@ -61,31 +65,18 @@ jobs:
             echo "Manifest patched"
           fi
 
-      - name: Build Android APK (Debug)
+      - name: Build Android APK & AAB (Debug)
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
-
-      - name: Build Android AAB (Debug)
-        run: |
-          cd android
           ./gradlew bundleDebug
 
-      - name: Upload Web Artifact (for Aruba)
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: web-site-out
-          path: out/
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-apk-debug
-          path: android/app/build/outputs/apk/debug/*.apk
-
-      - name: Upload AAB
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-aab-debug
-          path: android/app/build/outputs/bundle/debug/*.aab
+          name: Radio-RCS-Sicilia-Build
+          path: |
+            android/app/build/outputs/apk/debug/*.apk
+            android/app/build/outputs/bundle/debug/*.aab
+            out/
