@@ -32,12 +32,10 @@ export function InteractiveSection() {
     dateTime: ''
   });
 
-  // Gestione data minima (ora attuale + 24 ore) per evitare errori di idratazione
   useEffect(() => {
     const calculateMinDate = () => {
       const now = new Date();
       now.setHours(now.getHours() + 24);
-      // Format YYYY-MM-DDTHH:mm richiesto da input datetime-local
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const day = String(now.getDate()).padStart(2, '0');
@@ -112,7 +110,6 @@ export function InteractiveSection() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          {/* GENERATORE SLOGAN AI */}
           <Card className="border-none shadow-2xl rounded-3xl overflow-hidden bg-slate-950 text-white relative group">
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[80px] rounded-full -mr-32 -mt-32" />
             <CardHeader className="p-8">
@@ -142,7 +139,6 @@ export function InteractiveSection() {
             </CardContent>
           </Card>
 
-          {/* MODULO DEDICHE */}
           <Card className="border-none shadow-2xl rounded-3xl overflow-hidden bg-slate-50 border border-slate-100">
             <CardHeader className="p-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950/5 text-slate-950 text-[10px] font-black tracking-widest uppercase mb-4">
