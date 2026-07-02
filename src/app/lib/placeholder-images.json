@@ -4,13 +4,13 @@
     {
       "id": "radio-logo",
       "description": "Logo Ufficiale Radio RCS Sicilia",
-      "imageUrl": "/logo-rcs.jpg",
+      "imageUrl": "/logo-rcs.png",
       "imageHint": "radio logo"
     },
     {
       "id": "app-icon-512",
       "description": "Icona App per Store",
-      "imageUrl": "/logo-rcs.jpg",
+      "imageUrl": "/logo-rcs.png",
       "imageHint": "app icon"
     },
     {

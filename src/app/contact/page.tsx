@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from 'react';
@@ -110,60 +109,60 @@ export default function ContactPage() {
         <Card className="glass-morphism border-none shadow-2xl">
           <CardHeader>
             <CardTitle>Inviaci un messaggio</CardTitle>
-            <CardDescription>Ti risponderemo al più presto via email.</CardDescription>
+            <CardDescription className="text-slate-300">Ti risponderemo al più presto via email.</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Nome *</label>
+                  <label className="text-sm font-bold text-white uppercase tracking-wider ml-1">Nome *</label>
                   <Input 
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Il tuo nome" 
-                    className="bg-white/5 border-white/10" 
+                    className="bg-white/5 border-white/20 h-12" 
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email *</label>
+                  <label className="text-sm font-bold text-white uppercase tracking-wider ml-1">Email *</label>
                   <Input 
                     name="email"
                     type="email"
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="latua@email.com" 
-                    className="bg-white/5 border-white/10" 
+                    className="bg-white/5 border-white/20 h-12" 
                     required
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Oggetto</label>
+                <label className="text-sm font-bold text-white uppercase tracking-wider ml-1">Oggetto</label>
                 <Input 
                   name="subject"
                   value={formData.subject}
                   onChange={handleChange}
                   placeholder="Richiesta brano, pubblicità..." 
-                  className="bg-white/5 border-white/10" 
+                  className="bg-white/5 border-white/20 h-12" 
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Messaggio *</label>
+                <label className="text-sm font-bold text-white uppercase tracking-wider ml-1">Messaggio *</label>
                 <Textarea 
                   name="message"
                   value={formData.message}
                   onChange={handleChange}
                   placeholder="Scrivi qui il tuo messaggio..." 
-                  className="min-h-[150px] bg-white/5 border-white/10" 
+                  className="min-h-[150px] bg-white/5 border-white/20" 
                   required
                 />
               </div>
               <Button 
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full h-12 text-lg font-bold bg-primary hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
+                className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg"
               >
                 {isSubmitting ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

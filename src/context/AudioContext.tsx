@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 interface NowPlaying {
   artist: string;
   title: string;
-  coverUrl?: string;
+  coverUrl?: string | null;
 }
 
 interface AudioContextType {
@@ -25,15 +25,15 @@ interface AudioContextType {
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
-// URL HTTPS ufficiale fornito dall'amministratore
 const STREAM_URL = "https://sr10.inmystream.it/proxy/radiorcs?mp=/stream";
+const DEFAULT_LOGO = "/logo-rcs.png";
 
 export function AudioProvider({ children }: { children: ReactNode }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [volume, setVolume] = useState(80);
   const [isMuted, setIsMuted] = useState(false);
-  const [nowPlaying, setNowPlaying] = useState<NowPlaying>({ artist: '', title: 'Pronto all\'ascolto...' });
+  const [nowPlaying, setNowPlaying] = useState<NowPlaying>({ artist: '', title: 'Pronto all\'ascolto...', coverUrl: null });
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
@@ -46,67 +46,92 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       .replace(/\s+/g, " ")
       .trim();
     
+    // Rimuove il prefisso numerico tipo "7. " che a volte invia lo streaming
+    cleaned = cleaned.replace(/^\d+\.\s*/, "");
+    
+    // Rimuove stili CSS residui se presenti
     cleaned = cleaned.replace(/body,html\{.*?\}/gi, "").replace(/\{.*?\}/g, "");
-    if (cleaned.toLowerCase().includes("radio rcs sicilia")) return "";
+    
+    if (cleaned.toLowerCase().includes("radio rcs sicilia") && cleaned.length < 25) return "";
     return cleaned;
   };
 
   const fetchMetadata = async () => {
     try {
       const timestamp = new Date().getTime();
-      // Cerchiamo i metadati usando lo stesso server proxy HTTPS
-      const metadataUrl = "https://sr10.inmystream.it/proxy/radiorcs?mp=/7.html";
-      const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(metadataUrl)}&_=${timestamp}`);
-      const data = await response.json();
+      const metadataUrl = `https://sr10.inmystream.it/proxy/radiorcs?mp=/7.html&_=${timestamp}`;
       
-      if (data.contents) {
-        const rawContent = data.contents;
+      const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(metadataUrl)}`);
+      const data = await response.json();
+      const rawContent = data.contents;
+      
+      if (rawContent) {
         const parts = rawContent.split(',');
         
         if (parts.length >= 7) {
-          const rawTitle = parts[6];
+          const rawTitle = parts.slice(6).join(',');
           const fullTitle = cleanMetadata(rawTitle);
           
-          if (fullTitle) {
+          if (fullTitle && fullTitle !== (nowPlaying.artist + " - " + nowPlaying.title)) {
             const songInfo = fullTitle.split(' - ');
             const artist = songInfo.length >= 2 ? songInfo[0].trim() : 'Radio RCS Sicilia';
-            const title = songInfo.length >= 2 ? songInfo[1].trim() : fullTitle;
+            const title = songInfo.length >= 2 ? songInfo[1].trim() : songInfo[0].trim();
             
-            // Step 1: Default fallback image (picsum o logo)
-            let coverUrl = `https://picsum.photos/seed/${encodeURIComponent(fullTitle)}/400/400`;
-            
-            // Step 2: Tentativo di recupero copertina REALE tramite iTunes API (Gratuito)
-            try {
-              const searchTerm = encodeURIComponent(`${artist} ${title}`);
-              const itunesResponse = await fetch(`https://itunes.apple.com/search?term=${searchTerm}&limit=1&media=music`);
-              const itunesData = await itunesResponse.json();
-              
-              if (itunesData.results && itunesData.results.length > 0) {
-                // Sostituiamo l'URL per avere una risoluzione 600x600 invece di 100x100
-                coverUrl = itunesData.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
-              }
-            } catch (e) {
-              console.warn("iTunes Cover fetch failed, using fallback.");
-            }
-            
+            // Inizialmente mettiamo coverUrl a null per non mostrare il logo duplicato
             setNowPlaying({
-              artist,
-              title,
-              coverUrl
+              artist: artist,
+              title: title,
+              coverUrl: null
             });
+
+            const searchTerm = encodeURIComponent(`${artist} ${title}`);
+            fetch(`https://itunes.apple.com/search?term=${searchTerm}&limit=1&media=music`)
+              .then(res => res.json())
+              .then(itunesData => {
+                if (itunesData.results && itunesData.results.length > 0) {
+                  const betterCover = itunesData.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
+                  setNowPlaying(prev => ({ ...prev, coverUrl: betterCover }));
+                }
+              })
+              .catch(() => { });
           }
         }
       }
     } catch (error) {
-      // Errore silenzioso: l'utente non viene disturbato se il server metadati è lento
+      console.warn("Metadata fetch failed");
     }
   };
+
+  useEffect(() => {
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: nowPlaying.title || 'In ascolto...',
+        artist: nowPlaying.artist || 'Radio RCS Sicilia',
+        album: 'I Grandi Successi',
+        artwork: [
+          { src: nowPlaying.coverUrl || DEFAULT_LOGO, sizes: '512x512', type: 'image/png' }
+        ]
+      });
+
+      navigator.mediaSession.setActionHandler('play', () => {
+        if (!isPlaying) togglePlay();
+      });
+      navigator.mediaSession.setActionHandler('pause', () => {
+        if (isPlaying) togglePlay();
+      });
+      navigator.mediaSession.setActionHandler('stop', () => {
+        stop();
+      });
+    }
+  }, [nowPlaying, isPlaying]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isPlaying) {
       fetchMetadata();
       interval = setInterval(fetchMetadata, 10000); 
+    } else {
+      setNowPlaying({ artist: '', title: 'Pronto all\'ascolto...', coverUrl: null });
     }
     return () => {
       if (interval) clearInterval(interval);
@@ -127,11 +152,11 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       audioRef.current.src = ""; 
       audioRef.current.load();
       setIsPlaying(false);
-      setNowPlaying({ artist: '', title: 'Pronto all\'ascolto...' });
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'paused';
+      }
     } else {
       setIsLoading(true);
-      fetchMetadata();
-      
       audioRef.current.src = STREAM_URL;
       audioRef.current.load();
       
@@ -142,15 +167,18 @@ export function AudioProvider({ children }: { children: ReactNode }) {
           .then(() => {
             setIsPlaying(true);
             setIsLoading(false);
+            fetchMetadata();
+            if ('mediaSession' in navigator) {
+              navigator.mediaSession.playbackState = 'playing';
+            }
           })
           .catch((error) => {
-            console.error("Playback error:", error);
+            console.error("Play error:", error);
             setIsLoading(false);
             setIsPlaying(false);
-            
             toast({
               title: "Errore di connessione",
-              description: "Impossibile avviare lo streaming. Assicurati di essere connesso a Internet.",
+              description: "Impossibile avviare lo streaming.",
               variant: "destructive",
             });
           });
@@ -163,7 +191,9 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       audioRef.current.pause();
       audioRef.current.src = "";
       setIsPlaying(false);
-      setNowPlaying({ artist: '', title: 'In pausa...' });
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'none';
+      }
     }
   };
 

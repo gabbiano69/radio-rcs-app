@@ -1,19 +1,25 @@
 
 # Radio RCS Sicilia - App Ufficiale
 
-Progetto dell'app ufficiale di Radio RCS Sicilia. L'APK viene generato automaticamente ogni volta che vengono salvate modifiche su GitHub.
+Progetto dell'app ufficiale di Radio RCS Sicilia. L'APK/AAB e i file per il sito web vengono generati automaticamente ogni volta che vengono salvate modifiche su GitHub.
 
-## 📱 Come scaricare l'APK aggiornato
-1. Vai nella scheda **"Actions"** del tuo repository GitHub.
-2. Clicca sull'ultimo processo chiamato **"Build Android APK"** (quello con il segno di spunta verde ✅).
-3. Scorri in fondo alla pagina fino alla sezione **"Artifacts"**.
-4. Clicca su **`app-debug.apk`** per scaricare l'installatore sul tuo PC o direttamente sul tuo smartphone Android.
+## 🚀 Come scaricare i pacchetti pronti
+Ogni volta che modifichiamo l'app, GitHub genera i file pronti all'uso. 
+1. Vai nella scheda **"Actions"** in alto.
+2. Clicca sull'ultimo processo completato con successo ✅.
+3. In fondo alla pagina, nella sezione **"Artifacts"**, troverai:
 
-## 🚀 Note per l'installazione
-- Essendo un'app creata da te, Android potrebbe mostrare un avviso "Sorgente sconosciuta" o "Play Protect". Clicca su **"Installa comunque"**.
-- Per lo streaming: assicurati che il telefono sia connesso a internet. L'app gestisce automaticamente la riconnessione.
+### 📱 Per gli Store (Android)
+- **`app-debug.aab`**: Usa questo per **Google Play Store** (è il formato richiesto).
+- **`app-debug.apk`**: Usa questo per **Amazon Appstore**, **Fire TV** o per installarlo direttamente sul tuo telefono per test.
 
-## 🛠 Supporto Tecnico
-- **Streaming URL (HTTPS)**: `https://sr10.inmystream.it/proxy/radiorcs?mp=/stream`
-- **Metadata**: I titoli delle canzoni vengono recuperati ogni 10 secondi tramite il servizio AllOrigins.
-- **Tecnologia**: Next.js + Tailwind CSS + Capacitor 7 + Java 21.
+### 🌐 Per il Sito Web (Aruba)
+- **`web-site-out`**: Scarica questo pacchetto, scompattalo e carica tutto il suo contenuto tramite FTP su **Aruba**. Include già il file `.htaccess` per far funzionare i link correttamente su Linux.
+
+## 🛠 Note Tecniche per la Produzione
+- **Versione Android:** Per cambiare la versione dell'app, modifica `versionCode` e `versionName` in `android/app/build.gradle`.
+- **Firma (Keystore):** Per pubblicare su Google Play, devi firmare l'app. Genera un keystore e caricalo nei "Secrets" di GitHub se vuoi automatizzare la firma.
+- **Supporto TV:** L'app è configurata per essere navigabile con telecomando su Fire TV.
+
+---
+&copy; Radio RCS Sicilia di Vancheri Salvatore

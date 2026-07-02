@@ -1,21 +1,33 @@
+
+"use client"
+
 import { AudioPlayer } from '@/components/AudioPlayer';
+import Link from 'next/link';
 
 export default function Home() {
+  const currentYear = new Date().getFullYear();
+
   return (
-    <div className="flex-1 flex flex-col bg-background min-h-[calc(100vh-64px)]">
-      {/* SEZIONE HERO / PLAYER */}
-      <section className="relative flex-1 flex flex-col items-center p-4 sm:p-6">
-        {/* Sfondo con gradiente radiale */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150%] h-[150%] player-gradient pointer-events-none opacity-40" />
+    <div className="flex-1 flex flex-col bg-background overflow-hidden h-full">
+      {/* APP HOME: Solo Player, focalizzata per smartphone e pienamente responsive */}
+      <section className="relative flex-1 flex flex-col items-center justify-center p-4 sm:p-6 overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150%] h-[150%] player-gradient pointer-events-none opacity-60" />
         
-        <div className="z-10 w-full max-w-4xl flex-1 flex flex-col items-center animate-in fade-in zoom-in duration-1000">
+        <div className="z-10 w-full max-w-4xl flex-1 flex flex-col items-center justify-center animate-in fade-in zoom-in duration-1000">
           <AudioPlayer />
         </div>
       </section>
 
-      {/* FOOTER - Ora sempre visibile e compatto */}
-      <footer className="py-4 px-6 border-t border-white/5 text-center text-muted-foreground text-[10px] w-full shrink-0">
-        <p>&copy; {new Date().getFullYear()} Radio RCS Sicilia - I Grandi Successi.</p>
+      {/* FOOTER APP - MINIMALE E PULITO */}
+      <footer className="py-6 px-6 border-t border-white/5 text-center w-full bg-black/60 backdrop-blur-xl shrink-0">
+        <div className="max-w-6xl mx-auto">
+          <div className="space-y-1">
+            <h2 className="text-[10px] font-black text-primary italic uppercase tracking-tighter">Radio RCS Sicilia</h2>
+            <div className="flex flex-col items-center gap-1 text-[8px] text-muted-foreground/40 font-bold uppercase tracking-widest">
+              <p>&copy; {currentYear} Radio RCS Sicilia - P.IVA 01389680859</p>
+            </div>
+          </div>
+        </div>
       </footer>
     </div>
   );
