@@ -31,7 +31,7 @@ jobs:
       - name: Generate App Icons
         run: |
           if [ -f "public/logo-rcs.png" ]; then
-            npx @capacitor/assets generate --android --icon-source public/logo-rcs.png
+            npx @capacitor/assets generate --android --icon public/logo-rcs.png
             echo "Icons generated successfully"
           else
             echo "Source icon (public/logo-rcs.png) not found, using defaults"
