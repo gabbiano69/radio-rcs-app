@@ -3,7 +3,7 @@
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { InteractiveSection } from '@/components/InteractiveSection';
 import { SocialGallery } from '@/components/SocialGallery';
-import { Radio, Music, Calendar, Users, Globe, Headphones, Play, Pause } from 'lucide-react';
+import { Radio, Music, Headphones, Play, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';

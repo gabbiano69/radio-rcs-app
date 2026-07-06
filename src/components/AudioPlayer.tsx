@@ -65,7 +65,7 @@ export function AudioPlayer() {
         return;
       }
 
-      // Fallback Copia negli appunti (robusto)
+      // Fallback Copia negli appunti
       await copyToClipboard(fullMessage);
     } catch (err) {
       await copyToClipboard(fullMessage);
