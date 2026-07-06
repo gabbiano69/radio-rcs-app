@@ -37,21 +37,41 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
+  const getAbsoluteUrl = (path: string) => {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}${path}`;
+    }
+    return path;
+  };
+
   const cleanMetadata = (text: string) => {
     if (!text) return "";
-    let cleaned = text
+    
+    let cleaned = text;
+
+    // Fix encoding: tenta di correggere gli errori di codifica comuni (ISO-8859-1 interpretato come UTF-8)
+    try {
+      // Il metodo escape + decodeURIComponent è una tecnica collaudata per risolvere il mojibake dei flussi Shoutcast
+      cleaned = decodeURIComponent(escape(text));
+    } catch (e) {
+      // Se fallisce, usiamo il testo originale
+      cleaned = text;
+    }
+
+    cleaned = cleaned
       .replace(/<\/?[^>]+(>|$)/g, "") 
       .replace(/&nbsp;/g, " ")
       .replace(/&amp;/g, "&")
       .replace(/\s+/g, " ")
       .trim();
     
-    // Rimuove il prefisso numerico tipo "7. " che a volte invia lo streaming
+    // Rimuove numeri di traccia iniziali e residui di stili CSS/HTML
     cleaned = cleaned.replace(/^\d+\.\s*/, "");
-    
-    // Rimuove stili CSS residui se presenti
     cleaned = cleaned.replace(/body,html\{.*?\}/gi, "").replace(/\{.*?\}/g, "");
     
+    // Evita di mostrare il nome della radio se non c'è un brano reale
     if (cleaned.toLowerCase().includes("radio rcs sicilia") && cleaned.length < 25) return "";
     return cleaned;
   };
@@ -77,13 +97,14 @@ export function AudioProvider({ children }: { children: ReactNode }) {
             const artist = songInfo.length >= 2 ? songInfo[0].trim() : 'Radio RCS Sicilia';
             const title = songInfo.length >= 2 ? songInfo[1].trim() : songInfo[0].trim();
             
-            // Inizialmente mettiamo coverUrl a null per non mostrare il logo duplicato
-            setNowPlaying({
+            setNowPlaying(prev => ({
+              ...prev,
               artist: artist,
               title: title,
-              coverUrl: null
-            });
+              coverUrl: prev.coverUrl 
+            }));
 
+            // Fetch cover da iTunes
             const searchTerm = encodeURIComponent(`${artist} ${title}`);
             fetch(`https://itunes.apple.com/search?term=${searchTerm}&limit=1&media=music`)
               .then(res => res.json())
@@ -104,12 +125,19 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if ('mediaSession' in navigator) {
+      const artworkUrl = getAbsoluteUrl(nowPlaying.coverUrl || DEFAULT_LOGO);
+      
       navigator.mediaSession.metadata = new MediaMetadata({
         title: nowPlaying.title || 'In ascolto...',
         artist: nowPlaying.artist || 'Radio RCS Sicilia',
-        album: 'I Grandi Successi',
+        album: 'Radio RCS Sicilia - I Grandi Successi',
         artwork: [
-          { src: nowPlaying.coverUrl || DEFAULT_LOGO, sizes: '512x512', type: 'image/png' }
+          { src: artworkUrl, sizes: '96x96', type: 'image/png' },
+          { src: artworkUrl, sizes: '128x128', type: 'image/png' },
+          { src: artworkUrl, sizes: '192x192', type: 'image/png' },
+          { src: artworkUrl, sizes: '256x256', type: 'image/png' },
+          { src: artworkUrl, sizes: '384x384', type: 'image/png' },
+          { src: artworkUrl, sizes: '512x512', type: 'image/png' },
         ]
       });
 
@@ -122,14 +150,23 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       navigator.mediaSession.setActionHandler('stop', () => {
         stop();
       });
+
+      // Stato di riproduzione per Android
+      if (isPlaying) {
+        navigator.mediaSession.playbackState = 'playing';
+      } else if (isLoading) {
+        navigator.mediaSession.playbackState = 'none';
+      } else {
+        navigator.mediaSession.playbackState = 'paused';
+      }
     }
-  }, [nowPlaying, isPlaying]);
+  }, [nowPlaying, isPlaying, isLoading]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isPlaying) {
       fetchMetadata();
-      interval = setInterval(fetchMetadata, 10000); 
+      interval = setInterval(fetchMetadata, 15000); 
     } else {
       setNowPlaying({ artist: '', title: 'Pronto all\'ascolto...', coverUrl: null });
     }
@@ -152,11 +189,10 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       audioRef.current.src = ""; 
       audioRef.current.load();
       setIsPlaying(false);
-      if ('mediaSession' in navigator) {
-        navigator.mediaSession.playbackState = 'paused';
-      }
     } else {
       setIsLoading(true);
+      // Forza l'origine cross-origin per i metadati e la notifica
+      audioRef.current.crossOrigin = "anonymous";
       audioRef.current.src = STREAM_URL;
       audioRef.current.load();
       
@@ -168,9 +204,6 @@ export function AudioProvider({ children }: { children: ReactNode }) {
             setIsPlaying(true);
             setIsLoading(false);
             fetchMetadata();
-            if ('mediaSession' in navigator) {
-              navigator.mediaSession.playbackState = 'playing';
-            }
           })
           .catch((error) => {
             console.error("Play error:", error);
@@ -190,10 +223,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.src = "";
+      audioRef.current.load();
       setIsPlaying(false);
-      if ('mediaSession' in navigator) {
-        navigator.mediaSession.playbackState = 'none';
-      }
     }
   };
 
@@ -211,7 +242,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       fetchMetadata
     }}>
       {children}
-      <audio ref={audioRef} preload="none" crossOrigin="anonymous" />
+      <audio ref={audioRef} preload="metadata" crossOrigin="anonymous" />
     </AudioContext.Provider>
   );
 }

@@ -36,7 +36,7 @@ export default function SitoWebLandingPage() {
         </div>
       </div>
 
-      {/* HERO SECTION - MOCKUP A SINISTRA, TESTO A DESTRA */}
+      {/* HERO SECTION - TESTO A SINISTRA, MOCKUP A DESTRA */}
       <section className="relative flex flex-col items-center pt-2 pb-8 sm:pt-4 sm:pb-12 px-4 sm:px-6 overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">
           <div className="absolute top-20 left-10 animate-float"><Radio size={120} /></div>
@@ -45,18 +45,8 @@ export default function SitoWebLandingPage() {
 
         <div className="max-w-7xl mx-auto w-full z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 items-center w-full">
-            {/* MOCKUP A SINISTRA (PRIMO SU MOBILE E DESKTOP) */}
-            <div className="relative flex justify-center lg:justify-start order-1">
-              <div className="relative w-full max-w-[310px] sm:max-w-[360px] aspect-[9/18] rounded-[2.8rem] bg-black shadow-[0_40px_100px_-20px_rgba(0,0,0,0.6)] p-3 sm:p-4 border-[8px] sm:border-[10px] border-slate-900 flex flex-col items-center overflow-hidden">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150%] h-[150%] player-gradient pointer-events-none opacity-40" />
-                <div className="z-10 w-full h-full flex flex-col">
-                  <AudioPlayer />
-                </div>
-              </div>
-            </div>
-
-            {/* TESTO A DESTRA */}
-            <div className="space-y-4 sm:space-y-6 text-center lg:text-left order-2">
+            {/* TESTO A SINISTRA (PRIMO SU MOBILE E DESKTOP) */}
+            <div className="space-y-4 sm:space-y-6 text-center lg:text-left order-1">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-[10px] sm:text-xs font-bold uppercase tracking-widest">
                 <Headphones size={16} /> La Radio del Cuore della Sicilia
               </div>
@@ -103,6 +93,16 @@ export default function SitoWebLandingPage() {
                     </div>
                   </Button>
                 </Link>
+              </div>
+            </div>
+
+            {/* MOCKUP A DESTRA */}
+            <div className="relative flex justify-center lg:justify-end order-2">
+              <div className="relative w-full max-w-[310px] sm:max-w-[360px] aspect-[9/18] rounded-[2.8rem] bg-black shadow-[0_40px_100px_-20px_rgba(0,0,0,0.6)] p-3 sm:p-4 border-[8px] sm:border-[10px] border-slate-900 flex flex-col items-center overflow-hidden">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150%] h-[150%] player-gradient pointer-events-none opacity-40" />
+                <div className="z-10 w-full h-full flex flex-col">
+                  <AudioPlayer />
+                </div>
               </div>
             </div>
           </div>

@@ -1,0 +1,100 @@
+
+name: Build Android APK & AAB + Web Export
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'zulu'
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Generate App Icons
+        run: |
+          if [ -f "public/logo-rcs.png" ]; then
+            npx @capacitor/assets generate --android --icon-source public/logo-rcs.png
+            echo "Icons generated successfully"
+          else
+            echo "Source icon (public/logo-rcs.png) not found, using defaults"
+          fi
+
+      - name: Build Static Web App
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Upload Web Artifact (for Aruba)
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-site-out
+          path: out/
+
+      - name: Capacitor Sync
+        run: |
+          mkdir -p out
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+          npx cap sync android
+
+      - name: Patch Android Manifest for Stores & Fire TV
+        run: |
+          MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
+          if [ -f "$MANIFEST_PATH" ]; then
+            # Abilita traffico HTTP e compatibilità TV
+            sed -i 's/<application/<application android:usesCleartextTraffic="true" android:banner="@mipmap\/ic_launcher"/' $MANIFEST_PATH
+            
+            # Rende il touchscreen opzionale (per Fire TV)
+            sed -i '/<\/manifest>/i \    <uses-feature android:name="android.hardware.touchscreen" android:required="false" \/>' $MANIFEST_PATH
+            sed -i '/<\/manifest>/i \    <uses-feature android:name="android.software.leanback" android:required="false" \/>' $MANIFEST_PATH
+            
+            # Aggiunge categoria Leanback per il launcher TV
+            sed -i '/<category android:name="android.intent.category.LAUNCHER" \/>/a \                <category android:name="android.intent.category.LEANBACK_LAUNCHER" \/>' $MANIFEST_PATH
+            
+            echo "Manifest patched for Google Play, Amazon and Fire TV"
+          else
+            echo "Manifest not found"
+            exit 1
+          fi
+
+      - name: Build Android APK (Debug)
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Build Android AAB (Debug)
+        run: |
+          cd android
+          ./gradlew bundleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug.apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug.aab
+          path: android/app/build/outputs/bundle/debug/app-debug.aab
