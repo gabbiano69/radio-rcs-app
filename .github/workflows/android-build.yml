@@ -64,6 +64,7 @@ jobs:
           rm -rf out
           export NEXT_PUBLIC_BASE_PATH=""
           npm run build
+          cp -r public/* out/ 2>/dev/null || true
           cat > out/.htaccess << 'EOF'
           ErrorDocument 404 /index.html
           <IfModule mod_rewrite.c>
@@ -85,6 +86,7 @@ jobs:
           rm -rf out
           export NEXT_PUBLIC_BASE_PATH="/rcs"
           npm run build
+          cp -r public/* out/ 2>/dev/null || true
           cat > out/.htaccess << 'EOF'
           ErrorDocument 404 /rcs/index.html
           <IfModule mod_rewrite.c>
