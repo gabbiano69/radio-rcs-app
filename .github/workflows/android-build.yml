@@ -64,15 +64,17 @@ jobs:
           rm -rf out
           export NEXT_PUBLIC_BASE_PATH=""
           npm run build
-          echo 'ErrorDocument 404 /index.html
+          cat <<'EOF' > out/.htaccess
+ErrorDocument 404 /index.html
 <IfModule mod_rewrite.c>
-RewriteEngine On
-RewriteBase /
-RewriteRule ^index\.html$ - [L]
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /index.html [L]
-</IfModule>' > out/.htaccess
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
+EOF
           cp -r out/* release/web/ROOT-dominio-principale/
         env:
           NEXT_TELEMETRY_DISABLED: 1
@@ -83,15 +85,17 @@ RewriteRule . /index.html [L]
           rm -rf out
           export NEXT_PUBLIC_BASE_PATH="/rcs"
           npm run build
-          echo 'ErrorDocument 404 /rcs/index.html
+          cat <<'EOF' > out/.htaccess
+ErrorDocument 404 /rcs/index.html
 <IfModule mod_rewrite.c>
-RewriteEngine On
-RewriteBase /rcs/
-RewriteRule ^index\.html$ - [L]
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /rcs/index.html [L]
-</IfModule>' > out/.htaccess
+  RewriteEngine On
+  RewriteBase /rcs/
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /rcs/index.html [L]
+</IfModule>
+EOF
           cp -r out/* release/web/SUBFOLDER-rcs/
         env:
           NEXT_TELEMETRY_DISABLED: 1
