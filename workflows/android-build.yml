@@ -38,7 +38,7 @@ jobs:
             npx @capacitor/assets generate --android
           fi
 
-      # BUILD PER ANDROID
+      # 1. BUILD ANDROID
       - name: Build for Android
         run: npm run build
         env:
@@ -51,21 +51,31 @@ jobs:
           fi
           npx cap sync android
 
-      - name: Build Android APK & AAB (Debug)
+      - name: Build Android APK & AAB
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
           ./gradlew bundleDebug
 
-      # PREPARAZIONE CARTELLA ARTIFACT WEB
-      - name: Prepare Web Artifact Folder
-        run: mkdir -p final-web-export
+      # 2. PREPARAZIONE STAGING AREA (Per avere uno ZIP pulito)
+      - name: Create Release Folder
+        run: |
+          mkdir -p release/android
+          mkdir -p release/web/ROOT-dominio-principale
+          mkdir -p release/web/SUBFOLDER-rcs
 
-      # BUILD PER WEB (Cartella Principale / Root)
-      - name: Build for Web (Root)
+      # 3. COPIA ANDROID ARTIFACTS
+      - name: Copy Android Files
+        run: |
+          cp android/app/build/outputs/apk/debug/*.apk release/android/
+          cp android/app/build/outputs/bundle/debug/*.aab release/android/
+
+      # 4. BUILD WEB (Root)
+      - name: Build Web Root
         run: |
           rm -rf out
+          export NEXT_PUBLIC_BASE_PATH=""
           npm run build
           echo '<IfModule mod_rewrite.c>
           RewriteEngine On
@@ -75,16 +85,15 @@ jobs:
           RewriteCond %{REQUEST_FILENAME} !-d
           RewriteRule . /index.html [L]
           </IfModule>' > out/.htaccess
-          mkdir -p final-web-export/ROOT-dominio-principale
-          cp -r out/* final-web-export/ROOT-dominio-principale/
+          cp -r out/* release/web/ROOT-dominio-principale/
         env:
-          NEXT_PUBLIC_BASE_PATH: ''
           NEXT_TELEMETRY_DISABLED: 1
 
-      # BUILD PER WEB (Sottocartella /rcs)
-      - name: Build for Web (Subfolder /rcs)
+      # 5. BUILD WEB (Subfolder /rcs)
+      - name: Build Web Subfolder
         run: |
           rm -rf out
+          export NEXT_PUBLIC_BASE_PATH="/rcs"
           npm run build
           echo '<IfModule mod_rewrite.c>
           RewriteEngine On
@@ -94,17 +103,13 @@ jobs:
           RewriteCond %{REQUEST_FILENAME} !-d
           RewriteRule . /rcs/index.html [L]
           </IfModule>' > out/.htaccess
-          mkdir -p final-web-export/SUBFOLDER-rcs
-          cp -r out/* final-web-export/SUBFOLDER-rcs/
+          cp -r out/* release/web/SUBFOLDER-rcs/
         env:
-          NEXT_PUBLIC_BASE_PATH: /rcs
           NEXT_TELEMETRY_DISABLED: 1
 
-      - name: Upload Build Artifacts
+      # 6. CARICAMENTO ARTIFACT
+      - name: Upload Package
         uses: actions/upload-artifact@v4
         with:
-          name: Radio-RCS-Sicilia-Full-Package
-          path: |
-            android/app/build/outputs/apk/debug/*.apk
-            android/app/build/outputs/bundle/debug/*.aab
-            final-web-export/
+          name: Radio-RCS-Sicilia-FULL-RELEASE
+          path: release/

@@ -1,4 +1,2 @@
-import { config } from 'dotenv';
-config();
 
-import '@/ai/flows/generate-radio-slogan.ts';
+// File obsoleto rimosso durante la pulizia del progetto.
