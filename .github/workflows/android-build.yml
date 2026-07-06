@@ -1,4 +1,3 @@
-
 name: Build Android APK & AAB + Web Export
 
 on:
@@ -30,16 +29,32 @@ jobs:
 
       - name: Generate App Icons
         run: |
+          set -e
           if [ -f "public/logo-rcs.png" ]; then
+            echo "Generating icons from public/logo-rcs.png..."
             mkdir -p assets
+            # Prepariamo i layer per capacitor-assets
             cp public/logo-rcs.png assets/icon-only.png
             cp public/logo-rcs.png assets/icon-foreground.png
             cp public/logo-rcs.png assets/icon-background.png
+            
+            # Eseguiamo la generazione specifica per Android
             npx @capacitor/assets generate --android
-            echo "Icons generated successfully"
+            
+            echo "Verifica icone generate:"
+            ls -R android/app/src/main/res/mipmap-* | grep ic_launcher || echo "Attenzione: icone non trovate"
           else
-            echo "Source icon (public/logo-rcs.png) not found, using defaults"
+            echo "ERRORE: public/logo-rcs.png non trovato! Impossibile generare le icone corrette."
+            exit 1
           fi
+
+      - name: Upload Icons Artifact (per ispezione)
+        uses: actions/upload-artifact@v4
+        with:
+          name: App-Icons
+          path: |
+            android/app/src/main/res/mipmap-*
+            assets/
 
       - name: Build Static Web App
         run: npm run build
@@ -72,7 +87,7 @@ jobs:
           ./gradlew assembleDebug
           ./gradlew bundleDebug
 
-      - name: Upload Artifacts
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Radio-RCS-Sicilia-Build
