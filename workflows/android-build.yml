@@ -1,4 +1,3 @@
-
 name: Build Android APK & AAB + Web Export
 
 on:
@@ -30,62 +29,82 @@ jobs:
 
       - name: Generate App Icons
         run: |
+          set -e
           if [ -f "public/logo-rcs.png" ]; then
-            npx @capacitor/assets generate --android --icon-source public/logo-rcs.png
-            echo "Icons generated successfully"
-          else
-            echo "Source icon (public/logo-rcs.png) not found, using defaults"
+            mkdir -p assets
+            cp public/logo-rcs.png assets/icon-only.png
+            cp public/logo-rcs.png assets/icon-foreground.png
+            cp public/logo-rcs.png assets/icon-background.png
+            npx @capacitor/assets generate --android
           fi
 
-      - name: Build Static Web App
+      # BUILD PER ANDROID
+      - name: Build for Android
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: 1
 
       - name: Capacitor Sync
         run: |
-          mkdir -p out
           if [ ! -d "android" ]; then
             npx cap add android
           fi
           npx cap sync android
 
-      - name: Patch Android Manifest for Stores & Fire TV
-        run: |
-          MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
-          if [ -f "$MANIFEST_PATH" ]; then
-            sed -i 's/<application/<application android:usesCleartextTraffic="true" android:banner="@mipmap\/ic_launcher"/' $MANIFEST_PATH
-            sed -i '/<\/manifest>/i \    <uses-feature android:name="android.hardware.touchscreen" android:required="false" \/>' $MANIFEST_PATH
-            sed -i '/<\/manifest>/i \    <uses-feature android:name="android.software.leanback" android:required="false" \/>' $MANIFEST_PATH
-            sed -i '/<category android:name="android.intent.category.LAUNCHER" \/>/a \                <category android:name="android.intent.category.LEANBACK_LAUNCHER" \/>' $MANIFEST_PATH
-            echo "Manifest patched"
-          fi
-
-      - name: Build Android APK (Debug)
+      - name: Build Android APK & AAB (Debug)
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
-
-      - name: Build Android AAB (Debug)
-        run: |
-          cd android
           ./gradlew bundleDebug
 
-      - name: Upload Web Artifact (for Aruba)
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-site-out
-          path: out/
+      # PREPARAZIONE CARTELLA ARTIFACT WEB
+      - name: Prepare Web Artifact Folder
+        run: mkdir -p final-web-export
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-apk-debug
-          path: android/app/build/outputs/apk/debug/*.apk
+      # BUILD PER WEB (Cartella Principale / Root)
+      - name: Build for Web (Root)
+        run: |
+          rm -rf out
+          npm run build
+          echo '<IfModule mod_rewrite.c>
+          RewriteEngine On
+          RewriteBase /
+          RewriteRule ^index\.html$ - [L]
+          RewriteCond %{REQUEST_FILENAME} !-f
+          RewriteCond %{REQUEST_FILENAME} !-d
+          RewriteRule . /index.html [L]
+          </IfModule>' > out/.htaccess
+          mkdir -p final-web-export/ROOT-dominio-principale
+          cp -r out/* final-web-export/ROOT-dominio-principale/
+        env:
+          NEXT_PUBLIC_BASE_PATH: ''
+          NEXT_TELEMETRY_DISABLED: 1
 
-      - name: Upload AAB
+      # BUILD PER WEB (Sottocartella /rcs)
+      - name: Build for Web (Subfolder /rcs)
+        run: |
+          rm -rf out
+          npm run build
+          echo '<IfModule mod_rewrite.c>
+          RewriteEngine On
+          RewriteBase /rcs/
+          RewriteRule ^index\.html$ - [L]
+          RewriteCond %{REQUEST_FILENAME} !-f
+          RewriteCond %{REQUEST_FILENAME} !-d
+          RewriteRule . /rcs/index.html [L]
+          </IfModule>' > out/.htaccess
+          mkdir -p final-web-export/SUBFOLDER-rcs
+          cp -r out/* final-web-export/SUBFOLDER-rcs/
+        env:
+          NEXT_PUBLIC_BASE_PATH: /rcs
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: android-aab-debug
-          path: android/app/build/outputs/bundle/debug/*.aab
+          name: Radio-RCS-Sicilia-Full-Package
+          path: |
+            android/app/build/outputs/apk/debug/*.apk
+            android/app/build/outputs/bundle/debug/*.aab
+            final-web-export/
