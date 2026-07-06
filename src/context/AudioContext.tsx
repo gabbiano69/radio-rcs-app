@@ -47,9 +47,9 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     if (!text) return "";
     let cleaned = text;
 
-    // Conversione entità HTML comuni (Fix per &APOS;, &N&APOS;, etc.)
+    // Pulizia profonda delle entità HTML e caratteri spuri
     cleaned = cleaned
-      .replace(/&N&APOS;/gi, "'n'")
+      .replace(/&N&APOS;/gi, "'")
       .replace(/&APOS;/gi, "'")
       .replace(/&AMP;/gi, "&")
       .replace(/&QUOT;/gi, '"')
@@ -59,21 +59,19 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       .replace(/&RSQUO;/gi, "'")
       .replace(/&LSQUO;/gi, "'")
       .replace(/&#039;/g, "'")
-      .replace(/&#39;/g, "'")
-      .replace(/&apos;/g, "'")
-      .replace(/&amp;/g, "&");
+      .replace(/&#39;/g, "'");
 
-    // Pulizia tag HTML e spazi extra
+    // Rimuove tag HTML residui e spazi multipli
     cleaned = cleaned
       .replace(/<\/?[^>]+(>|$)/g, "") 
       .replace(/\s+/g, " ")
       .trim();
     
-    // Filtro per slogan o messaggi generici
     const filters = ["radio rcs", "sicilia", "grandi successi", "la radio del cuore", "in ascolto", "pubblicità"];
     const lowercaseCleaned = cleaned.toLowerCase();
     
-    const isSlogan = (filters.some(f => lowercaseCleaned.includes(f)) && cleaned.length < 40) || cleaned.length < 3;
+    // Se è uno slogan o troppo corto, usiamo il default
+    const isSlogan = (filters.some(f => lowercaseCleaned.includes(f)) && cleaned.length < 45) || cleaned.length < 3;
     if (isSlogan) return "Radio RCS Sicilia - I Grandi Successi";
     
     return cleaned;
@@ -125,8 +123,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     if (mounted && 'mediaSession' in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: nowPlaying.title,
-        artist: nowPlaying.artist,
-        album: 'Radio RCS Sicilia',
+        artist: nowPlaying.artist || 'Radio RCS Sicilia',
+        album: 'I Grandi Successi',
         artwork: [{ src: nowPlaying.coverUrl || DEFAULT_LOGO, sizes: '512x512', type: 'image/png' }]
       });
     }

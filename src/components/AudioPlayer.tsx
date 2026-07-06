@@ -1,4 +1,3 @@
-
 "use client"
 
 import React from 'react';
@@ -6,6 +5,7 @@ import { Play, Pause, Square, Volume2, VolumeX, Share2, Activity, Music } from '
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useAudio } from '@/context/AudioContext';
@@ -28,49 +28,73 @@ export function AudioPlayer() {
 
   const handleShare = async () => {
     const shareTitle = 'Radio RCS Sicilia - I Grandi Successi';
+    const songText = nowPlaying.artist 
+      ? `"${nowPlaying.title}" di ${nowPlaying.artist}`
+      : `"${nowPlaying.title}"`;
+      
     const shareText = isPlaying 
-      ? `📻 Sto ascoltando "${nowPlaying.title} ${nowPlaying.artist ? 'di ' + nowPlaying.artist : ''}" su Radio RCS Sicilia! Ascoltala anche tu:` 
+      ? `📻 Sto ascoltando ${songText} su Radio RCS Sicilia! ✨\nAscoltala anche tu in streaming HD qui:` 
       : '📻 Ascolta Radio RCS Sicilia - I Grandi Successi in streaming ovunque tu sia:';
+    
     const shareUrl = 'https://www.rcsradio.it';
+    
+    // Messaggio ricco per condivisione
+    const fullMessage = nowPlaying.coverUrl 
+      ? `${shareText}\n${shareUrl}\n\n🖼️ Artwork: ${nowPlaying.coverUrl}`
+      : `${shareText}\n${shareUrl}`;
 
     try {
       const canShare = await Share.canShare();
       if (canShare.value) {
         await Share.share({
           title: shareTitle,
-          text: shareText,
+          text: isPlaying ? shareText : 'Ascolta Radio RCS Sicilia',
           url: shareUrl,
           dialogTitle: 'Condividi Radio RCS',
         });
-      } else {
-        throw new Error('Native share not available');
+        return;
       }
-    } catch (err) {
-      if (navigator.share) {
-        navigator.share({
+      
+      // Fallback Web Share API
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        await navigator.share({
           title: shareTitle,
-          text: shareText,
+          text: isPlaying ? shareText : 'Ascolta Radio RCS Sicilia',
           url: shareUrl,
-        }).catch(() => {
-          copyToClipboard(shareUrl);
         });
-      } else {
-        copyToClipboard(shareUrl);
+        return;
       }
+
+      // Fallback Copia negli appunti (robusto)
+      await copyToClipboard(fullMessage);
+    } catch (err) {
+      await copyToClipboard(fullMessage);
     }
   };
 
   const copyToClipboard = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(text);
+      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      
       toast({
-        title: "Link copiato!",
-        description: "Il link al sito è stato copiato negli appunti.",
+        title: "Dettagli copiati!",
+        description: "Informazioni brano e link copiati negli appunti.",
       });
     } catch (err) {
       toast({
         title: "Errore",
-        description: "Non è stato possibile copiare il link.",
+        description: "Impossibile copiare il link automaticamente.",
         variant: "destructive"
       });
     }
@@ -78,7 +102,6 @@ export function AudioPlayer() {
 
   return (
     <div className="w-full flex-1 flex flex-col items-center justify-between py-2 gap-2 sm:gap-4 overflow-hidden">
-      {/* LOGO STAZIONE - RITAGLIO CIRCOLARE PERFETTO E PULITO */}
       <div className="relative flex flex-col items-center w-full shrink-0">
         <div 
           className={cn(
@@ -101,7 +124,6 @@ export function AudioPlayer() {
         </div>
       </div>
 
-      {/* SLOGAN E BADGE */}
       <div className="text-center space-y-1 w-full shrink-0 mt-1">
         <h2 className="text-[9px] sm:text-[10px] font-black tracking-[0.3em] text-white/40 italic uppercase">
           #LaRadioOltreConfine
@@ -119,13 +141,22 @@ export function AudioPlayer() {
           >
             {isPlaying ? "ON AIR" : "OFFLINE"}
           </Badge>
-          <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full w-6 h-6 text-white/40 hover:text-primary hover:bg-white/5 transition-all">
-            <Share2 size={12} />
-          </Button>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full w-6 h-6 text-white/40 hover:text-primary hover:bg-white/5 transition-all">
+                  <Share2 size={12} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-primary text-white border-none text-[10px] font-bold">
+                Fai sapere ai tuoi amici cosa stai ascoltando su Radio RCS!
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
 
-      {/* SEZIONE BRANO IN ONDA - TITOLI E COVER DINAMICA */}
       <div className="flex-1 flex flex-col items-center justify-center w-full min-h-[120px] py-1">
         {isPlaying ? (
           <div className="flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-700 w-full px-4">
@@ -141,7 +172,7 @@ export function AudioPlayer() {
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-slate-900 to-black flex flex-col items-center justify-center gap-2">
                   <Music className={cn("text-primary/40", isPlaying && "animate-pulse")} size={40} />
-                  <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.2em]">No Cover</p>
+                  <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.2em]">Live Stream</p>
                 </div>
               )}
             </div>
@@ -167,7 +198,6 @@ export function AudioPlayer() {
         )}
       </div>
 
-      {/* CONTROLLI - COMPATTI E PULITI */}
       <div className="w-full max-w-[280px] sm:max-w-[320px] glass-morphism rounded-[1.8rem] p-3 sm:p-4 mb-2 shrink-0">
         <div className="flex items-center justify-between gap-3 mb-3">
           <Button
@@ -196,7 +226,6 @@ export function AudioPlayer() {
           </div>
         </div>
 
-        {/* VOLUME */}
         <div className="flex items-center gap-3 px-1">
           <Button
             variant="ghost"

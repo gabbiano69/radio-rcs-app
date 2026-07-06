@@ -7,6 +7,7 @@ export default function Home() {
   const [currentYear, setCurrentYear] = useState<number | null>(null);
 
   useEffect(() => {
+    // Risoluzione errore hydration: data impostata solo sul client dopo il mount
     setCurrentYear(new Date().getFullYear());
   }, []);
 
