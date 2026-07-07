@@ -1,116 +1,84 @@
-name: Build Android & Web Export (Aruba Optimized)
+name: Android Build
 
 on:
   push:
-    branches: [ main, master ]
-  workflow_dispatch:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '20'
           cache: 'npm'
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'zulu'
-
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
+        run: npm install
 
-      - name: Generate App Icons
+      - name: Build Web for Android (Root)
         run: |
-          if [ -f "public/logo-rcs.png" ]; then
-            mkdir -p assets
-            cp public/logo-rcs.png assets/icon-only.png
-            cp public/logo-rcs.png assets/icon-foreground.png
-            cp public/logo-rcs.png assets/icon-background.png
-            npx @capacitor/assets generate --android
-          fi
-
-      - name: Create Staging Area
-        run: |
-          mkdir -p release/android
-          mkdir -p release/web/ROOT-dominio-principale
-          mkdir -p release/web/SUBFOLDER-rcs
-
-      # 1. BUILD ANDROID (Interfaccia Player in Home)
-      - name: Build for Android
-        run: |
-          export NEXT_PUBLIC_IS_APP="true"
+          export NEXT_PUBLIC_IS_APP=true
           export NEXT_PUBLIC_BASE_PATH=""
           npm run build
-          if [ ! -d "android" ]; then npx cap add android; fi
-          npx cap sync android
-          cd android
-          chmod +x gradlew
-          ls -la gradlew || echo "gradlew not found!"
-          java -version
-          ./gradlew assembleDebug
-          ./gradlew bundleDebug
-          cp app/build/outputs/apk/debug/*.apk ../release/android/ || echo "APK not found"
-          cp app/build/outputs/bundle/debug/*.aab ../release/android/ || echo "AAB not found"
         env:
-          NEXT_TELEMETRY_DISABLED: 1
           NEXT_PUBLIC_IS_APP: "true"
+          NEXT_PUBLIC_BASE_PATH: ""
 
-      # 2. BUILD WEB (ROOT - Interfaccia Sito in Home)
-      - name: Build Web Root
+      - name: Save Android Web Build
         run: |
-          rm -rf out
+          mkdir -p android-build
+          cp -r out/* android-build/
+
+      - name: Build Web for Aruba (Root)
+        run: |
+          export NEXT_PUBLIC_IS_APP=false
           export NEXT_PUBLIC_BASE_PATH=""
-          export NEXT_PUBLIC_IS_APP="false"
           npm run build
-          cat <<'EOF' > out/.htaccess
-          ErrorDocument 404 /index.html
-          <IfModule mod_rewrite.c>
-            RewriteEngine On
-            RewriteBase /
-            RewriteRule ^index\.html$ - [L]
-            RewriteCond %{REQUEST_FILENAME} !-f
-            RewriteCond %{REQUEST_FILENAME} !-d
-            RewriteRule . /index.html [L]
-          </IfModule>
-          EOF
-          cp -r out/* release/web/ROOT-dominio-principale/
         env:
-          NEXT_TELEMETRY_DISABLED: 1
           NEXT_PUBLIC_IS_APP: "false"
+          NEXT_PUBLIC_BASE_PATH: ""
 
-      # 3. BUILD WEB (SUBFOLDER /rcs - Interfaccia Sito in Home)
-      - name: Build Web Subfolder
+      - name: Build Web for Aruba Subfolder (/rcs)
         run: |
-          rm -rf out
+          export NEXT_PUBLIC_IS_APP=false
           export NEXT_PUBLIC_BASE_PATH="/rcs"
-          export NEXT_PUBLIC_IS_APP="false"
           npm run build
-          cat <<'EOF' > out/.htaccess
-          ErrorDocument 404 /rcs/index.html
-          <IfModule mod_rewrite.c>
-            RewriteEngine On
-            RewriteBase /rcs/
-            RewriteRule ^index\.html$ - [L]
-            RewriteCond %{REQUEST_FILENAME} !-f
-            RewriteCond %{REQUEST_FILENAME} !-d
-            RewriteRule . /rcs/index.html [L]
-          </IfModule>
-          EOF
-          cp -r out/* release/web/SUBFOLDER-rcs/
         env:
-          NEXT_TELEMETRY_DISABLED: 1
           NEXT_PUBLIC_IS_APP: "false"
+          NEXT_PUBLIC_BASE_PATH: "/rcs"
+
+      - name: Generate .htaccess for Subfolder
+        run: |
+          mkdir -p out-subfolder
+          cp -r out/* out-subfolder/
+          cat << 'EOF' > out-subfolder/.htaccess
+          RewriteEngine On
+          RewriteBase /rcs/
+          RewriteCond %{REQUEST_FILENAME} !-f
+          RewriteCond %{REQUEST_FILENAME} !-d
+          RewriteRule ^(.*)$ index.html [L]
+          ErrorDocument 404 /rcs/index.html
+          EOF
+
+      - name: Generate .htaccess for Root
+        run: |
+          cat << 'EOF' > out/.htaccess
+          RewriteEngine On
+          RewriteCond %{REQUEST_FILENAME} !-f
+          RewriteCond %{REQUEST_FILENAME} !-d
+          RewriteRule ^(.*)$ index.html [L]
+          ErrorDocument 404 /index.html
+          EOF
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Radio-RCS-Sicilia-FULL-RELEASE
-          path: release/
+          path: |
+            out/
+            out-subfolder/
+            android-build/
