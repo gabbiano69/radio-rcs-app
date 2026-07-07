@@ -54,7 +54,6 @@ export function Navigation() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/40">
       <div className="flex justify-between items-center h-16 max-w-7xl mx-auto px-4 sm:px-6">
-        {/* Navigation Links */}
         <div className="flex items-center h-full flex-1 max-w-lg">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -78,7 +77,6 @@ export function Navigation() {
           })}
         </div>
 
-        {/* Social Buttons */}
         <div className="flex items-center gap-2 sm:gap-4 ml-4">
           {socials.map((social, idx) => (
             <a 

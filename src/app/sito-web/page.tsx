@@ -11,9 +11,6 @@ import { useAudio } from '@/context/AudioContext';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 
-/**
- * @fileOverview Landing Page completa del Sito Web.
- */
 export default function SitoWebLandingPage() {
   const { isPlaying, togglePlay, isLoading } = useAudio();
   const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
