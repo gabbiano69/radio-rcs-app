@@ -3,6 +3,7 @@
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { InteractiveSection } from '@/components/InteractiveSection';
 import { SocialGallery } from '@/components/SocialGallery';
+import { NewsSection } from '@/components/NewsSection';
 import { Radio, Music, Headphones, Play, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -11,13 +12,21 @@ import { useAudio } from '@/context/AudioContext';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 
+/**
+ * @fileOverview Landing Page completa del Sito Web.
+ */
 export default function SitoWebLandingPage() {
   const { isPlaying, togglePlay, isLoading } = useAudio();
-  const [currentYear, setCurrentYear] = useState<number | null>(null);
+  const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
+  const [mounted, setMounted] = useState(false);
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
+    setMounted(true);
   }, []);
+
+  if (!mounted) return null;
 
   return (
     <div className="flex-1 flex flex-col bg-slate-50 text-slate-900">
@@ -25,7 +34,7 @@ export default function SitoWebLandingPage() {
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6">
           <div className="relative w-12 h-12 sm:w-20 sm:h-20 rounded-full overflow-hidden border-2 border-primary/20 bg-white p-1 shrink-0">
             <Image 
-              src="/logo-rcs.png" 
+              src={`${basePath}/logo-rcs.png`}
               alt="Logo Radio RCS" 
               fill 
               className="object-contain rounded-full"
@@ -79,7 +88,7 @@ export default function SitoWebLandingPage() {
                   )}
                 </Button>
 
-                <Link href="/" className="w-full sm:w-auto">
+                <a href="https://play.google.com/store/apps/details?id=it.rcsradio.sicilia" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                   <Button 
                     size="lg" 
                     className="h-12 sm:h-14 px-4 sm:px-8 rounded-2xl bg-black hover:bg-slate-900 border border-slate-800 text-white flex items-center justify-center gap-3 transition-all shadow-xl w-full"
@@ -94,7 +103,7 @@ export default function SitoWebLandingPage() {
                       <span className="text-sm font-bold">Google Play</span>
                     </div>
                   </Button>
-                </Link>
+                </a>
               </div>
             </div>
 
@@ -110,6 +119,7 @@ export default function SitoWebLandingPage() {
         </div>
       </section>
 
+      <NewsSection />
       <InteractiveSection />
       <SocialGallery />
 
@@ -140,7 +150,7 @@ export default function SitoWebLandingPage() {
         </div>
         
         <div className="max-w-6xl mx-auto pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] text-slate-500 font-bold uppercase tracking-widest text-center">
-          <p>&copy; {currentYear ?? '...'} Radio RCS Sicilia</p>
+          <p>&copy; {currentYear} Radio RCS Sicilia</p>
           <div className="flex flex-wrap justify-center gap-4">
             <p>P.IVA 01389680859</p>
             <p>Lic. SIAE 3824</p>

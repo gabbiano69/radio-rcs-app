@@ -25,7 +25,6 @@ interface AudioContextType {
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
 const STREAM_URL = "https://sr10.inmystream.it/proxy/radiorcs?mp=/stream";
-const DEFAULT_LOGO = "/logo-rcs.png";
 
 export function AudioProvider({ children }: { children: ReactNode }) {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -38,6 +37,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastTitleRef = useRef<string>("");
   const { toast } = useToast();
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+  const DEFAULT_LOGO = `${basePath}/logo-rcs.png`;
 
   useEffect(() => {
     setMounted(true);
@@ -47,7 +48,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     if (!text) return "";
     let cleaned = text;
 
-    // Pulizia profonda delle entità HTML e caratteri spuri
+    // Rimozione entità HTML comuni e codici specifici (inclusi &APOS; e &N&APOS;)
     cleaned = cleaned
       .replace(/&N&APOS;/gi, "'")
       .replace(/&APOS;/gi, "'")
@@ -59,18 +60,28 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       .replace(/&RSQUO;/gi, "'")
       .replace(/&LSQUO;/gi, "'")
       .replace(/&#039;/g, "'")
-      .replace(/&#39;/g, "'");
+      .replace(/&#39;/g, "'")
+      .replace(/&Agrave;/g, "À")
+      .replace(/&Egrave;/g, "È")
+      .replace(/&Igrave;/g, "Ì")
+      .replace(/&Ograve;/g, "Ò")
+      .replace(/&Ugrave;/g, "Ù")
+      .replace(/&agrave;/g, "à")
+      .replace(/&egrave;/g, "è")
+      .replace(/&igrave;/g, "ì")
+      .replace(/&ograve;/g, "ò")
+      .replace(/&ugrave;/g, "ù");
 
-    // Rimuove tag HTML residui e spazi multipli
+    // Rimozione tag e spazi multipli
     cleaned = cleaned
       .replace(/<\/?[^>]+(>|$)/g, "") 
       .replace(/\s+/g, " ")
       .trim();
     
+    // Filtro per slogan o titoli troppo generici
     const filters = ["radio rcs", "sicilia", "grandi successi", "la radio del cuore", "in ascolto", "pubblicità"];
     const lowercaseCleaned = cleaned.toLowerCase();
     
-    // Se è uno slogan o troppo corto, usiamo il default
     const isSlogan = (filters.some(f => lowercaseCleaned.includes(f)) && cleaned.length < 45) || cleaned.length < 3;
     if (isSlogan) return "Radio RCS Sicilia - I Grandi Successi";
     
@@ -124,11 +135,10 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: nowPlaying.title,
         artist: nowPlaying.artist || 'Radio RCS Sicilia',
-        album: 'I Grandi Successi',
         artwork: [{ src: nowPlaying.coverUrl || DEFAULT_LOGO, sizes: '512x512', type: 'image/png' }]
       });
     }
-  }, [nowPlaying, mounted]);
+  }, [nowPlaying, mounted, DEFAULT_LOGO]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;

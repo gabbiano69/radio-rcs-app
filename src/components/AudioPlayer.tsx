@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Play, Pause, Square, Volume2, VolumeX, Share2, Activity, Music } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -25,6 +25,12 @@ export function AudioPlayer() {
     setIsMuted 
   } = useAudio();
   const { toast } = useToast();
+  const [mounted, setMounted] = useState(false);
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleShare = async () => {
     const shareTitle = 'Radio RCS Sicilia - I Grandi Successi';
@@ -38,14 +44,13 @@ export function AudioPlayer() {
     
     const shareUrl = 'https://www.rcsradio.it';
     
-    // Messaggio ricco per condivisione
     const fullMessage = nowPlaying.coverUrl 
       ? `${shareText}\n${shareUrl}\n\n🖼️ Artwork: ${nowPlaying.coverUrl}`
       : `${shareText}\n${shareUrl}`;
 
     try {
-      const canShare = await Share.canShare();
-      if (canShare.value) {
+      const canShareResult = await Share.canShare();
+      if (canShareResult.value) {
         await Share.share({
           title: shareTitle,
           text: isPlaying ? shareText : 'Ascolta Radio RCS Sicilia',
@@ -55,7 +60,6 @@ export function AudioPlayer() {
         return;
       }
       
-      // Fallback Web Share API
       if (typeof navigator !== 'undefined' && navigator.share) {
         await navigator.share({
           title: shareTitle,
@@ -65,7 +69,6 @@ export function AudioPlayer() {
         return;
       }
 
-      // Fallback Copia negli appunti
       await copyToClipboard(fullMessage);
     } catch (err) {
       await copyToClipboard(fullMessage);
@@ -100,6 +103,8 @@ export function AudioPlayer() {
     }
   };
 
+  if (!mounted) return null;
+
   return (
     <div className="w-full flex-1 flex flex-col items-center justify-between py-2 gap-2 sm:gap-4 overflow-hidden">
       <div className="relative flex flex-col items-center w-full shrink-0">
@@ -110,7 +115,7 @@ export function AudioPlayer() {
           )} 
         >
           <Image
-            src="/logo-rcs.png"
+            src={`${basePath}/logo-rcs.png`}
             alt="Radio RCS Logo"
             fill
             className="object-contain p-1 rounded-full"
@@ -150,7 +155,7 @@ export function AudioPlayer() {
                 </Button>
               </TooltipTrigger>
               <TooltipContent className="bg-primary text-white border-none text-[10px] font-bold">
-                Fai sapere ai tuoi amici cosa stai ascoltando su Radio RCS!
+                Condividi cosa stai ascoltando su Radio RCS!
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

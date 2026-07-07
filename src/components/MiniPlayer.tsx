@@ -1,7 +1,6 @@
-
 "use client"
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Play, Pause, Square, Music, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,9 +10,17 @@ import { cn } from '@/lib/utils';
 export function MiniPlayer() {
   const pathname = usePathname();
   const { isPlaying, nowPlaying, togglePlay, stop, isLoading } = useAudio();
+  const [mounted, setMounted] = useState(false);
+  const isApp = process.env.NEXT_PUBLIC_IS_APP === 'true';
 
-  // Mostra il mini-player solo se NON siamo in Home e se c'è attività audio o caricamento
-  if (pathname === '/' || (!isPlaying && !isLoading)) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Sul Web (Sito), la Home "/" è già il sito web completo, quindi non mostriamo il miniplayer lì.
+  // Nell'App, la Home "/" è il Player principale, quindi il miniplayer non serve.
+  // Mostriamo il miniplayer solo nelle pagine interne (/about, /contact, etc.)
+  if (!mounted || pathname === '/' || (!isPlaying && !isLoading)) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 animate-in slide-in-from-bottom-full duration-500 sm:bottom-4 sm:left-4 sm:right-4 sm:max-w-md sm:mx-auto">

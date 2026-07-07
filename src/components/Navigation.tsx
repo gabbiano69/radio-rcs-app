@@ -1,27 +1,47 @@
-
 "use client"
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Radio, Info, Mail, Globe, Facebook, Youtube, Instagram, Shield } from 'lucide-react';
+import { Radio, Info, Mail, Globe, Facebook, Youtube, Instagram, Shield, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const links = [
-  { href: '/', label: 'Radio', icon: Radio },
-  { href: '/sito-web', label: 'Sito Web', icon: Globe },
-  { href: '/about', label: 'Chi Siamo', icon: Info },
-  { href: '/contact', label: 'Contatti', icon: Mail },
-  { href: '/privacy', label: 'Privacy', icon: Shield },
-];
-
-const socialLinks = [
-  { href: 'https://www.facebook.com/RCS.radio', icon: Facebook, label: 'Facebook' },
-  { href: 'https://www.youtube.com/channel/UCTlKWIycsPc7Wh5cPW03vOA', icon: Youtube, label: 'YouTube' },
-  { href: 'https://www.instagram.com/radio_rcs_sicilia/', icon: Instagram, label: 'Instagram' },
-];
 
 export function Navigation() {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+  const isApp = process.env.NEXT_PUBLIC_IS_APP === 'true';
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Definizione dinamica dei link in base al contesto App o Web
+  const links = [
+    // La Home (/) è Radio nell'App, Home nel Web
+    { 
+      href: '/', 
+      label: isApp ? 'Radio' : 'Home', 
+      icon: isApp ? Radio : Home 
+    },
+    // Il secondo pulsante è Sito nell'App, OnAir nel Web
+    ...(isApp 
+      ? [{ href: '/sito-web', label: 'Sito Web', icon: Globe }] 
+      : [{ href: '/player', label: 'OnAir', icon: Radio }]
+    ),
+    { href: '/about', label: 'Chi Siamo', icon: Info },
+    { href: '/contact', label: 'Contatti', icon: Mail },
+    { href: '/privacy', label: 'Privacy', icon: Shield },
+  ];
+
+  const socialLinks = [
+    { href: 'https://www.facebook.com/RCS.radio', icon: Facebook, label: 'Facebook' },
+    { href: 'https://www.youtube.com/channel/UCTlKWIycsPc7Wh5cPW03vOA', icon: Youtube, label: 'YouTube' },
+    { href: 'https://www.instagram.com/radio_rcs_sicilia/', icon: Instagram, label: 'Instagram' },
+  ];
+
+  if (!mounted) return (
+    <nav className="sticky top-0 z-50 w-full bg-black/60 backdrop-blur-xl border-b border-white/5 px-3 py-2 h-14" />
+  );
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-black/60 backdrop-blur-xl border-b border-white/5 px-3 py-2">

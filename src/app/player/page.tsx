@@ -2,41 +2,24 @@
 
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { useState, useEffect } from 'react';
-import SitoWebLandingPage from './sito-web/page';
 
 /**
- * @fileOverview Home Page Dinamica.
- * Se l'app viene compilata come APP (Android), mostra il Player minimalista.
- * Se l'app viene compilata come WEB (Aruba), mostra la Landing Page completa.
+ * @fileOverview Pagina OnAir dedicata al Player minimalista sul Web.
+ * Viene usata quando l'utente clicca su "OnAir" dal sito web.
  */
-export default function Home() {
+export default function OnAirPlayerPage() {
   const [mounted, setMounted] = useState(false);
   const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
-  
-  // Questa variabile viene iniettata durante il build da GitHub Actions
-  const isApp = process.env.NEXT_PUBLIC_IS_APP === 'true';
 
   useEffect(() => {
     setMounted(true);
     setCurrentYear(new Date().getFullYear());
   }, []);
 
-  if (!mounted) {
-    return (
-      <div className="flex-1 flex flex-col bg-background items-center justify-center">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+  if (!mounted) return null;
 
-  // Se siamo sul Web (Aruba), mostriamo la Landing Page completa come Home
-  if (!isApp) {
-    return <SitoWebLandingPage />;
-  }
-
-  // Se siamo nell'App Android, mostriamo il Player minimalista
   return (
-    <div className="flex-1 flex flex-col bg-background overflow-hidden h-full">
+    <div className="flex-1 flex flex-col bg-background overflow-hidden h-full min-h-[calc(100vh-64px)]">
       <section className="relative flex-1 flex flex-col items-center justify-center p-4 sm:p-6 overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150%] h-[150%] player-gradient pointer-events-none opacity-60" />
         
