@@ -44,7 +44,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-body antialiased min-h-screen flex flex-col bg-background selection:bg-primary selection:text-white pb-20 sm:pb-0 text-foreground">
+      <body className="font-body antialiased min-h-screen flex flex-col bg-background selection:bg-primary selection:text-white pt-16 text-foreground">
         <AudioProvider>
           <Navigation />
           <main className="flex-1 flex flex-col">

@@ -3,7 +3,6 @@
 import { AudioPlayer } from '@/components/AudioPlayer';
 import { InteractiveSection } from '@/components/InteractiveSection';
 import { SocialGallery } from '@/components/SocialGallery';
-import { NewsSection } from '@/components/NewsSection';
 import { Radio, Music, Headphones, Play, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -26,7 +25,11 @@ export default function SitoWebLandingPage() {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  if (!mounted) return (
+    <div className="flex-1 flex flex-col bg-slate-50 items-center justify-center p-20">
+      <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
 
   return (
     <div className="flex-1 flex flex-col bg-slate-50 text-slate-900">
@@ -119,7 +122,6 @@ export default function SitoWebLandingPage() {
         </div>
       </section>
 
-      <NewsSection />
       <InteractiveSection />
       <SocialGallery />
 
@@ -134,9 +136,9 @@ export default function SitoWebLandingPage() {
           <div className="space-y-4">
             <h4 className="text-sm font-bold uppercase tracking-widest text-white/50">Info Legali</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/about" className="hover:text-primary">Chi Siamo</Link></li>
-              <li><Link href="/contact" className="hover:text-primary">Contatti</Link></li>
-              <li><Link href="/privacy" className="hover:text-primary">Privacy Policy</Link></li>
+              <li><Link href="/about/" className="hover:text-primary">Chi Siamo</Link></li>
+              <li><Link href="/contact/" className="hover:text-primary">Contatti</Link></li>
+              <li><Link href="/privacy/" className="hover:text-primary">Privacy Policy</Link></li>
             </ul>
           </div>
           <div className="space-y-4">

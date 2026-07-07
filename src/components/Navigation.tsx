@@ -1,9 +1,9 @@
-"use client"
+'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Radio, Info, Mail, Globe, Facebook, Youtube, Instagram, Shield, Home } from 'lucide-react';
+import { Radio, Globe, Info, MessageSquare, Home, Facebook, Instagram, Youtube, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function Navigation() {
@@ -15,72 +15,78 @@ export function Navigation() {
     setMounted(true);
   }, []);
 
-  // Definizione dinamica dei link in base al contesto App o Web
-  const links = [
-    // La Home (/) è Radio nell'App, Home nel Web
-    { 
-      href: '/', 
-      label: isApp ? 'Radio' : 'Home', 
-      icon: isApp ? Radio : Home 
+  if (!mounted) return null;
+
+  const navItems = [
+    {
+      href: '/',
+      label: isApp ? 'Radio' : 'Home',
+      icon: isApp ? Radio : Home,
     },
-    // Il secondo pulsante è Sito nell'App, OnAir nel Web
-    ...(isApp 
-      ? [{ href: '/sito-web', label: 'Sito Web', icon: Globe }] 
-      : [{ href: '/player', label: 'OnAir', icon: Radio }]
-    ),
-    { href: '/about', label: 'Chi Siamo', icon: Info },
-    { href: '/contact', label: 'Contatti', icon: Mail },
-    { href: '/privacy', label: 'Privacy', icon: Shield },
+    {
+      href: isApp ? '/sito-web/' : '/player/',
+      label: isApp ? 'Sito Web' : 'OnAir',
+      icon: isApp ? Globe : Radio,
+    },
+    {
+      href: '/about/',
+      label: 'Chi Siamo',
+      icon: Info,
+    },
+    {
+      href: '/contact/',
+      label: 'Contatti',
+      icon: MessageSquare,
+    },
+    {
+      href: '/privacy/',
+      label: 'Privacy',
+      icon: Shield,
+    },
   ];
 
-  const socialLinks = [
-    { href: 'https://www.facebook.com/RCS.radio', icon: Facebook, label: 'Facebook' },
-    { href: 'https://www.youtube.com/channel/UCTlKWIycsPc7Wh5cPW03vOA', icon: Youtube, label: 'YouTube' },
-    { href: 'https://www.instagram.com/radio_rcs_sicilia/', icon: Instagram, label: 'Instagram' },
+  const socials = [
+    { icon: Facebook, href: 'https://www.facebook.com/RCS.radio', color: 'hover:text-blue-500' },
+    { icon: Instagram, href: 'https://www.instagram.com/radio_rcs_sicilia/', color: 'hover:text-pink-500' },
+    { icon: Youtube, href: 'https://www.youtube.com/channel/UCTlKWIycsPc7Wh5cPW03vOA', color: 'hover:text-red-500' },
   ];
-
-  if (!mounted) return (
-    <nav className="sticky top-0 z-50 w-full bg-black/60 backdrop-blur-xl border-b border-white/5 px-3 py-2 h-14" />
-  );
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-black/60 backdrop-blur-xl border-b border-white/5 px-3 py-2">
-      <div className="max-w-screen-xl mx-auto flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth">
-          {links.map((link) => {
-            const Icon = link.icon;
-            const isActive = pathname === link.href;
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/40">
+      <div className="flex justify-between items-center h-16 max-w-7xl mx-auto px-4 sm:px-6">
+        {/* Navigation Links */}
+        <div className="flex items-center h-full flex-1 max-w-lg">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href || (pathname === '/' && item.href === '/');
             
             return (
               <Link
-                key={link.href}
-                href={link.href}
-                tabIndex={0}
-                aria-label={link.label}
+                key={item.href}
+                href={item.href}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-black",
-                  isActive 
-                    ? "bg-primary text-white shadow-lg shadow-primary/20" 
-                    : "text-white/40 hover:text-primary hover:bg-white/5"
+                  "flex flex-col items-center justify-center space-y-1 w-full h-full transition-colors",
+                  isActive ? "text-primary" : "text-muted-foreground hover:text-primary"
                 )}
               >
-                <Icon size={18} />
-                <span className="hidden lg:inline-block">{link.label}</span>
+                <Icon className="w-5 h-5" />
+                <span className="text-[10px] font-medium uppercase tracking-wider hidden xs:block">
+                  {item.label}
+                </span>
               </Link>
             );
           })}
         </div>
 
-        <div className="flex items-center gap-1 shrink-0">
-          {socialLinks.map((social) => (
-            <a
-              key={social.href}
-              href={social.href}
-              target="_blank"
+        {/* Social Buttons */}
+        <div className="flex items-center gap-2 sm:gap-4 ml-4">
+          {socials.map((social, idx) => (
+            <a 
+              key={idx} 
+              href={social.href} 
+              target="_blank" 
               rel="noopener noreferrer"
-              tabIndex={0}
-              aria-label={social.label}
-              className="p-2 text-white/40 hover:text-primary hover:bg-white/5 rounded-full transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className={cn("text-muted-foreground transition-colors p-1.5", social.color)}
             >
               <social.icon size={18} />
             </a>

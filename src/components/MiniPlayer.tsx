@@ -11,15 +11,13 @@ export function MiniPlayer() {
   const pathname = usePathname();
   const { isPlaying, nowPlaying, togglePlay, stop, isLoading } = useAudio();
   const [mounted, setMounted] = useState(false);
-  const isApp = process.env.NEXT_PUBLIC_IS_APP === 'true';
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Sul Web (Sito), la Home "/" è già il sito web completo, quindi non mostriamo il miniplayer lì.
-  // Nell'App, la Home "/" è il Player principale, quindi il miniplayer non serve.
-  // Mostriamo il miniplayer solo nelle pagine interne (/about, /contact, etc.)
+  // Non mostriamo il miniplayer se non siamo montati o se siamo nella home
+  // (dove c'è già il player principale in modalità App o Sito)
   if (!mounted || pathname === '/' || (!isPlaying && !isLoading)) return null;
 
   return (

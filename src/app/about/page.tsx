@@ -1,12 +1,21 @@
-
 "use client"
 
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/app/lib/placeholder-images';
 import { Card, CardContent } from '@/components/ui/card';
-import { History, Target, Users, Landmark, Radio, Disc, Mic } from 'lucide-react';
+import { Radio, Disc, Mic, Landmark } from 'lucide-react';
 
 export default function AboutPage() {
+  const [mounted, setMounted] = useState(false);
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   const hero = PlaceHolderImages.find(img => img.id === 'about-hero');
   const banner = PlaceHolderImages.find(img => img.id === 'about-banner');
 
@@ -19,11 +28,10 @@ export default function AboutPage() {
         </p>
       </div>
 
-      {/* Banner Promozionale */}
       <div className="relative w-full aspect-[21/9] rounded-2xl overflow-hidden shadow-xl border border-white/10 bg-white/5">
         {banner && (
           <Image
-            src={banner.imageUrl}
+            src={`${basePath}${banner.imageUrl}`}
             alt={banner.description}
             fill
             className="object-cover"
@@ -75,15 +83,12 @@ export default function AboutPage() {
         <p>
           Radio RCS Sicilia è una storica emittente radiofonica locale che, grazie alla potenza dello streaming digitale, è diventata una voce ascoltata con passione sia a livello Nazionale che Internazionale. 
         </p>
-        
         <p>
           La nostra nascita risale al <strong>10 marzo 1979</strong>, in quegli anni pionieristici dove le frequenze erano territori da esplorare e i giradischi erano il motore di ogni trasmissione. Negli anni '80 siamo diventati la voce di una comunità intera, radicandoci profondamente nel territorio siciliano.
         </p>
-
         <p>
           Mentre gli anni '90 segnavano la chiusura di molte realtà locali, RCS ha saputo evolversi, mantenendo intatta la propria originalità e autonomia. Con l'avvento delle nuove tecnologie, abbiamo innalzato i nostri standard: oggi, due regie computerizzate garantiscono una programmazione musicale H24 con una qualità tecnica eccelsa.
         </p>
-
         <p>
           Il nostro palinsesto unisce i <strong>Grandi Successi</strong> che hanno segnato la storia della musica italiana e internazionale alle hit del momento, offrendo una colonna sonora completa per ogni generazione.
         </p>

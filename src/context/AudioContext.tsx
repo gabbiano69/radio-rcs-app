@@ -48,7 +48,6 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     if (!text) return "";
     let cleaned = text;
 
-    // Rimozione entità HTML comuni e codici specifici (inclusi &APOS; e &N&APOS;)
     cleaned = cleaned
       .replace(/&N&APOS;/gi, "'")
       .replace(/&APOS;/gi, "'")
@@ -72,13 +71,11 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       .replace(/&ograve;/g, "ò")
       .replace(/&ugrave;/g, "ù");
 
-    // Rimozione tag e spazi multipli
     cleaned = cleaned
       .replace(/<\/?[^>]+(>|$)/g, "") 
       .replace(/\s+/g, " ")
       .trim();
     
-    // Filtro per slogan o titoli troppo generici
     const filters = ["radio rcs", "sicilia", "grandi successi", "la radio del cuore", "in ascolto", "pubblicità"];
     const lowercaseCleaned = cleaned.toLowerCase();
     
@@ -142,12 +139,12 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (isPlaying) {
+    if (isPlaying && mounted) {
       fetchMetadata();
       interval = setInterval(fetchMetadata, 15000); 
     }
     return () => { if (interval) clearInterval(interval); };
-  }, [isPlaying]);
+  }, [isPlaying, mounted]);
 
   useEffect(() => {
     if (audioRef.current) {

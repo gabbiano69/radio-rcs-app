@@ -66,7 +66,9 @@ export function SocialGallery() {
             >
               <Card className="border-none shadow-xl rounded-[2.5rem] overflow-hidden transition-all duration-500 group-hover:-translate-y-2 bg-white h-full border border-slate-100">
                 <CardContent className="p-10 flex flex-col items-center text-center gap-6">
-                  {/* Icone rimosse come richiesto, lasciato spazio per titoli e descrizioni */}
+                  <div className={cn("w-16 h-16 rounded-3xl flex items-center justify-center transition-transform group-hover:scale-110", platform.bg, platform.color)}>
+                    <platform.icon size={32} />
+                  </div>
                   <div className="space-y-4">
                     <h3 className={`text-3xl font-black uppercase tracking-tighter ${platform.color}`}>
                       {platform.platform}
@@ -90,4 +92,9 @@ export function SocialGallery() {
       </div>
     </section>
   );
+}
+
+// Helper per cn se non importato correttamente
+function cn(...inputs: any[]) {
+  return inputs.filter(Boolean).join(' ');
 }
