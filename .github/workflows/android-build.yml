@@ -43,64 +43,71 @@ jobs:
           mkdir -p release/web/ROOT-dominio-principale
           mkdir -p release/web/SUBFOLDER-rcs
 
-      # 1. BUILD ANDROID
+      # 1. BUILD ANDROID (Interfaccia Player in Home)
       - name: Build for Android
         run: |
+          export NEXT_PUBLIC_IS_APP="true"
+          export NEXT_PUBLIC_BASE_PATH=""
           npm run build
           if [ ! -d "android" ]; then npx cap add android; fi
           npx cap sync android
           cd android
           chmod +x gradlew
+          ls -la gradlew || echo "gradlew not found!"
+          java -version
           ./gradlew assembleDebug
           ./gradlew bundleDebug
-          cp app/build/outputs/apk/debug/*.apk ../release/android/
-          cp app/build/outputs/bundle/debug/*.aab ../release/android/
+          cp app/build/outputs/apk/debug/*.apk ../release/android/ || echo "APK not found"
+          cp app/build/outputs/bundle/debug/*.aab ../release/android/ || echo "AAB not found"
         env:
           NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_IS_APP: "true"
 
-      # 2. BUILD WEB (ROOT)
+      # 2. BUILD WEB (ROOT - Interfaccia Sito in Home)
       - name: Build Web Root
         run: |
           rm -rf out
           export NEXT_PUBLIC_BASE_PATH=""
+          export NEXT_PUBLIC_IS_APP="false"
           npm run build
-          cp -r public/* out/ 2>/dev/null || true
-          cat > out/.htaccess << 'EOF'
-          ErrorDocument 404 /index.html
-          <IfModule mod_rewrite.c>
-            RewriteEngine On
-            RewriteBase /
-            RewriteRule ^index\.html$ - [L]
-            RewriteCond %{REQUEST_FILENAME} !-f
-            RewriteCond %{REQUEST_FILENAME} !-d
-            RewriteRule . /index.html [L]
-          </IfModule>
-          EOF
+          cat <<'EOF' > out/.htaccess
+ErrorDocument 404 /index.html
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
+EOF
           cp -r out/* release/web/ROOT-dominio-principale/
         env:
           NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_IS_APP: "false"
 
-      # 3. BUILD WEB (SUBFOLDER /rcs)
+      # 3. BUILD WEB (SUBFOLDER /rcs - Interfaccia Sito in Home)
       - name: Build Web Subfolder
         run: |
           rm -rf out
           export NEXT_PUBLIC_BASE_PATH="/rcs"
+          export NEXT_PUBLIC_IS_APP="false"
           npm run build
-          cp -r public/* out/ 2>/dev/null || true
-          cat > out/.htaccess << 'EOF'
-          ErrorDocument 404 /rcs/index.html
-          <IfModule mod_rewrite.c>
-            RewriteEngine On
-            RewriteBase /rcs/
-            RewriteRule ^index\.html$ - [L]
-            RewriteCond %{REQUEST_FILENAME} !-f
-            RewriteCond %{REQUEST_FILENAME} !-d
-            RewriteRule . /rcs/index.html [L]
-          </IfModule>
-          EOF
+          cat <<'EOF' > out/.htaccess
+ErrorDocument 404 /rcs/index.html
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /rcs/
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /rcs/index.html [L]
+</IfModule>
+EOF
           cp -r out/* release/web/SUBFOLDER-rcs/
         env:
           NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_IS_APP: "false"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
