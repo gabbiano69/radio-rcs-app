@@ -1,4 +1,3 @@
-
 # Materiali per Pubblicazione Store (Google Play & Amazon)
 
 Questo documento contiene i testi e i requisiti grafici necessari per la pubblicazione di Radio RCS Sicilia.
