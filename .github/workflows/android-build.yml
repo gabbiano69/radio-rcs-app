@@ -34,6 +34,24 @@ jobs:
           NEXT_PUBLIC_IS_APP: "true"
           NEXT_PUBLIC_BASE_PATH: ""
 
+      - name: Generate App Icons for Android
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+          
+          # Crea le directory per le icone
+          mkdir -p android/app/src/main/res/mipmap-{ldpi,mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}
+          
+          # Genera le icone dalle diverse densità usando logo-rcs.png
+          convert public/logo-rcs.png -resize 36x36 android/app/src/main/res/mipmap-ldpi/ic_launcher.png
+          convert public/logo-rcs.png -resize 48x48 android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+          convert public/logo-rcs.png -resize 72x72 android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+          convert public/logo-rcs.png -resize 96x96 android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+          convert public/logo-rcs.png -resize 144x144 android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+          convert public/logo-rcs.png -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          
+          echo "✅ App icons generated successfully for all densities"
+
       - name: Add Android platform
         run: npx cap add android
 
