@@ -53,7 +53,10 @@ jobs:
           echo "✅ App icons generated successfully for all densities"
 
       - name: Add Android platform
-        run: npx cap add android
+        run: |
+          # Rimuove la cartella android se esiste già
+          rm -rf android
+          npx cap add android
 
       - name: Sync Capacitor Android
         run: npx cap sync android
