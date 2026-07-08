@@ -52,12 +52,14 @@ export function Navigation() {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/40">
-      <div className="flex justify-between items-center h-16 max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center h-full flex-1 max-w-lg">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/40 h-16">
+      <div className="flex justify-between items-center h-full max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex items-center h-full flex-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href || (pathname === '/' && item.href === '/');
+            const normalizedPath = pathname === '/' ? '/' : pathname.replace(/\/$/, '') + '/';
+            const normalizedHref = item.href === '/' ? '/' : item.href.replace(/\/$/, '') + '/';
+            const isActive = normalizedPath === normalizedHref;
             
             return (
               <Link
