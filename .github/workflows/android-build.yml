@@ -16,6 +16,12 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+
       - name: Install dependencies
         run: npm install
 
@@ -28,10 +34,22 @@ jobs:
           NEXT_PUBLIC_IS_APP: "true"
           NEXT_PUBLIC_BASE_PATH: ""
 
-      - name: Save Android Web Build
+      - name: Sync Capacitor Android
         run: |
-          mkdir -p android-build
-          cp -r out/* android-build/
+          npx cap sync android
+
+      - name: Build Android App (APK & AAB)
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+          ./gradlew bundleDebug
+
+      - name: Prepare Android Artifacts
+        run: |
+          mkdir -p android-release
+          cp android/app/build/outputs/apk/debug/app-debug.apk android-release/Radio-RCS-Sicilia.apk || true
+          cp android/app/build/outputs/bundle/debug/app-debug.aab android-release/Radio-RCS-Sicilia.aab || true
 
       - name: Build Web for Aruba (Root)
         run: |
@@ -42,37 +60,28 @@ jobs:
           NEXT_PUBLIC_IS_APP: "false"
           NEXT_PUBLIC_BASE_PATH: ""
 
-      - name: Build Web for Aruba Subfolder (/rcs)
-        run: |
-          export NEXT_PUBLIC_IS_APP=false
-          export NEXT_PUBLIC_BASE_PATH="/rcs"
-          npm run build
-        env:
-          NEXT_PUBLIC_IS_APP: "false"
-          NEXT_PUBLIC_BASE_PATH: "/rcs"
-
       - name: Generate .htaccess for Subfolder
         run: |
           mkdir -p out-subfolder
           cp -r out/* out-subfolder/
           cat << 'EOF' > out-subfolder/.htaccess
-          RewriteEngine On
-          RewriteBase /rcs/
-          RewriteCond %{REQUEST_FILENAME} !-f
-          RewriteCond %{REQUEST_FILENAME} !-d
-          RewriteRule ^(.*)$ index.html [L]
-          ErrorDocument 404 /rcs/index.html
-          EOF
+RewriteEngine On
+RewriteBase /rcs/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.html [L]
+ErrorDocument 404 /rcs/index.html
+EOF
 
       - name: Generate .htaccess for Root
         run: |
           cat << 'EOF' > out/.htaccess
-          RewriteEngine On
-          RewriteCond %{REQUEST_FILENAME} !-f
-          RewriteCond %{REQUEST_FILENAME} !-d
-          RewriteRule ^(.*)$ index.html [L]
-          ErrorDocument 404 /index.html
-          EOF
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.html [L]
+ErrorDocument 404 /index.html
+EOF
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -81,4 +90,4 @@ jobs:
           path: |
             out/
             out-subfolder/
-            android-build/
+            android-release/
