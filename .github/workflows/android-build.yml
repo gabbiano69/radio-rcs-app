@@ -1,93 +1,133 @@
-name: Android Build
+name: Android Build & Web Deployment
 
 on:
   push:
     branches: [ main ]
 
+concurrency:
+  group: android-build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+  JAVA_VERSION: '21'
+  GRADLE_OPTS: '-Xmx2048m -XX:+UseG1GC'
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    
     steps:
-      - uses: actions/checkout@v4
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: ⚙️ Set up Node.js with caching
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
 
-      - name: Set up Java
+      - name: ☕ Set up Java with caching
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: ${{ env.JAVA_VERSION }}
           distribution: 'zulu'
+          cache: 'gradle'
 
-      - name: Install dependencies
-        run: npm install
+      - name: 📦 Install dependencies
+        run: npm ci --prefer-offline --no-audit
+        continue-on-error: false
 
-      - name: Build Web for Android (Root)
-        run: |
-          export NEXT_PUBLIC_IS_APP=true
-          export NEXT_PUBLIC_BASE_PATH=""
-          npm run build
+      # ============= BUILD PHASE 1: ANDROID WEB APP =============
+      - name: 🔨 Build Web for Android
+        run: npm run build
         env:
           NEXT_PUBLIC_IS_APP: "true"
           NEXT_PUBLIC_BASE_PATH: ""
+          NODE_ENV: production
+        continue-on-error: false
 
-      - name: Generate App Icons for Android
+      - name: 💾 Backup Android build output
         run: |
-          sudo apt-get update
-          sudo apt-get install -y imagemagick
-          
-          # Crea le directory per le icone
-          mkdir -p android/app/src/main/res/mipmap-{ldpi,mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}
-          
-          # Genera le icone dalle diverse densità usando logo-rcs.png
-          convert public/logo-rcs.png -resize 36x36 android/app/src/main/res/mipmap-ldpi/ic_launcher.png
-          convert public/logo-rcs.png -resize 48x48 android/app/src/main/res/mipmap-mdpi/ic_launcher.png
-          convert public/logo-rcs.png -resize 72x72 android/app/src/main/res/mipmap-hdpi/ic_launcher.png
-          convert public/logo-rcs.png -resize 96x96 android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
-          convert public/logo-rcs.png -resize 144x144 android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
-          convert public/logo-rcs.png -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-          
-          echo "✅ App icons generated successfully for all densities"
+          mkdir -p builds-backup
+          cp -r out builds-backup/out-android
+          echo "✅ Android build backed up ($(du -sh builds-backup/out-android | cut -f1))"
 
-      - name: Add Android platform
-        run: |
-          # Rimuove la cartella android se esiste già
-          rm -rf android
-          npx cap add android
-
-      - name: Sync Capacitor Android
-        run: npx cap sync android
-
-      - name: Build Android App (APK & AAB)
-        run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug
-          ./gradlew bundleDebug
-
-      - name: Prepare Android Artifacts
-        run: |
-          mkdir -p android-release
-          cp android/app/build/outputs/apk/debug/app-debug.apk android-release/Radio-RCS-Sicilia.apk || true
-          cp android/app/build/outputs/bundle/debug/app-debug.aab android-release/Radio-RCS-Sicilia.aab || true
-
-      - name: Build Web for Aruba (Root)
-        run: |
-          export NEXT_PUBLIC_IS_APP=false
-          export NEXT_PUBLIC_BASE_PATH=""
-          npm run build
+      # ============= BUILD PHASE 2: ARUBA WEB APP =============
+      - name: 🔨 Build Web for Aruba
+        run: npm run build
         env:
           NEXT_PUBLIC_IS_APP: "false"
           NEXT_PUBLIC_BASE_PATH: ""
+          NODE_ENV: production
+        continue-on-error: false
 
-      - name: Generate .htaccess for Subfolder
-        run: |-
+      # ============= ANDROID APP BUILD =============
+      - name: 🤖 Add Android platform
+        run: |
+          rm -rf android
+          npx cap add android
+          echo "✅ Android platform initialized"
+
+      - name: 🎨 Generate App Icons from capacitor-assets
+        run: |
+          mkdir -p assets
+          cp public/logo-rcs.png assets/icon-only.png
+          npx capacitor-assets generate --android
+          echo "✅ App icons generated for all densities"
+
+      - name: 🔄 Sync Capacitor Android
+        run: |
+          npx cap sync android
+          echo "✅ Capacitor resources synced"
+
+      - name: 🚀 Build Android App (APK & AAB)
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug bundleDebug \
+            -Dorg.gradle.jvmargs="-Xmx2048m" \
+            --parallel \
+            --build-cache
+          echo "✅ APK and AAB built successfully"
+
+      - name: 📦 Verify Android artifacts exist
+        run: |
+          echo "🔍 Checking APK..."
+          ls -lh android/app/build/outputs/apk/debug/app-debug.apk || \
+            (echo "❌ APK not found!" && exit 1)
+          
+          echo "🔍 Checking AAB..."
+          ls -lh android/app/build/outputs/bundle/debug/app-debug.aab || \
+            (echo "❌ AAB not found!" && exit 1)
+
+      - name: 📂 Prepare Android release artifacts
+        run: |
+          mkdir -p android-release
+          
+          if [ -f android/app/build/outputs/apk/debug/app-debug.apk ]; then
+            cp android/app/build/outputs/apk/debug/app-debug.apk android-release/Radio-RCS-Sicilia.apk
+            echo "✅ APK copied ($(du -sh android-release/Radio-RCS-Sicilia.apk | cut -f1))"
+          else
+            echo "⚠️  APK not found, skipping"
+          fi
+          
+          if [ -f android/app/build/outputs/bundle/debug/app-debug.aab ]; then
+            cp android/app/build/outputs/bundle/debug/app-debug.aab android-release/Radio-RCS-Sicilia.aab
+            echo "✅ AAB copied ($(du -sh android-release/Radio-RCS-Sicilia.aab | cut -f1))"
+          else
+            echo "⚠️  AAB not found, skipping"
+          fi
+
+      # ============= WEB APP CONFIGURATION =============
+      - name: 🌐 Generate .htaccess for Aruba Subfolder
+        run: |
           mkdir -p out-subfolder
-          cp -r out/* out-subfolder/
-          cat << 'EOF' > out-subfolder/.htaccess
+          cp -r builds-backup/out-android/* out-subfolder/
+          
+          cat > out-subfolder/.htaccess << 'EOF'
           RewriteEngine On
           RewriteBase /rcs/
           RewriteCond %{REQUEST_FILENAME} !-f
@@ -95,18 +135,23 @@ jobs:
           RewriteRule ^(.*)$ index.html [L]
           ErrorDocument 404 /rcs/index.html
           EOF
+          
+          echo "✅ .htaccess created for /rcs/ subfolder"
 
-      - name: Generate .htaccess for Root
-        run: |-
-          cat << 'EOF' > out/.htaccess
+      - name: 🌐 Generate .htaccess for Root Domain
+        run: |
+          cat > out/.htaccess << 'EOF'
           RewriteEngine On
           RewriteCond %{REQUEST_FILENAME} !-f
           RewriteCond %{REQUEST_FILENAME} !-d
           RewriteRule ^(.*)$ index.html [L]
           ErrorDocument 404 /index.html
           EOF
+          
+          echo "✅ .htaccess created for root domain"
 
-      - name: Upload Artifacts
+      # ============= ARTIFACT UPLOAD =============
+      - name: 📤 Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Radio-RCS-Sicilia-FULL-RELEASE
@@ -114,3 +159,23 @@ jobs:
             out/
             out-subfolder/
             android-release/
+          retention-days: 30
+          compression-level: 9
+
+      - name: 📊 Build Summary
+        run: |
+          echo "════════════════════════════════════════"
+          echo "✅ BUILD COMPLETED SUCCESSFULLY"
+          echo "════════════════════════════════════════"
+          echo "📦 Android APK: $([ -f android-release/Radio-RCS-Sicilia.apk ] && echo '✓' || echo '✗')"
+          echo "📦 Android AAB: $([ -f android-release/Radio-RCS-Sicilia.aab ] && echo '✓' || echo '✗')"
+          echo "🌐 Web (Root): $([ -f out/index.html ] && echo '✓' || echo '✗')"
+          echo "🌐 Web (Subfolder /rcs/): $([ -f out-subfolder/index.html ] && echo '✓' || echo '✗')"
+          echo "════════════════════════════════════════"
+
+      - name: ❌ Build failed notification
+        if: failure()
+        run: |
+          echo "⚠️  BUILD FAILED"
+          echo "Check the logs above for details"
+          exit 1
