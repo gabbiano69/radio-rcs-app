@@ -64,6 +64,12 @@ jobs:
           NODE_ENV: production
         continue-on-error: false
 
+      - name: 💾 Backup Aruba build output
+        run: |
+          mkdir -p builds-backup/out-aruba
+          cp -r out/* builds-backup/out-aruba/
+          echo "✅ Aruba build backed up"
+
       # ============= ANDROID APP BUILD =============
       - name: 🤖 Add Android platform
         run: |
@@ -77,6 +83,13 @@ jobs:
           cp public/logo-rcs.png assets/icon-only.png
           npx capacitor-assets generate --android
           echo "✅ App icons generated for all densities"
+
+      - name: 🔄 Restore Android web build for Capacitor
+        run: |
+          rm -rf out
+          mkdir -p out
+          cp -r builds-backup/out-android/* out/
+          echo "✅ Android web build restored for Capacitor sync"
 
       - name: 🔄 Sync Capacitor Android
         run: |
@@ -122,6 +135,13 @@ jobs:
           fi
 
       # ============= WEB APP CONFIGURATION =============
+      - name: 🔄 Restore Aruba web build for Deployment
+        run: |
+          rm -rf out
+          mkdir -p out
+          cp -r builds-backup/out-aruba/* out/
+          echo "✅ Aruba web build restored for final deployment"
+
       - name: 🌐 Generate .htaccess for Aruba Subfolder
         run: |
           mkdir -p out-subfolder
