@@ -1,0 +1,116 @@
+name: Android Build
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'zulu'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Web for Android (Root)
+        run: |
+          export NEXT_PUBLIC_IS_APP=true
+          export NEXT_PUBLIC_BASE_PATH=""
+          npm run build
+        env:
+          NEXT_PUBLIC_IS_APP: "true"
+          NEXT_PUBLIC_BASE_PATH: ""
+
+      - name: Generate App Icons for Android
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+          
+          # Crea le directory per le icone
+          mkdir -p android/app/src/main/res/mipmap-{ldpi,mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}
+          
+          # Genera le icone dalle diverse densità usando logo-rcs.png
+          convert public/logo-rcs.png -resize 36x36 android/app/src/main/res/mipmap-ldpi/ic_launcher.png
+          convert public/logo-rcs.png -resize 48x48 android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+          convert public/logo-rcs.png -resize 72x72 android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+          convert public/logo-rcs.png -resize 96x96 android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+          convert public/logo-rcs.png -resize 144x144 android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+          convert public/logo-rcs.png -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          
+          echo "✅ App icons generated successfully for all densities"
+
+      - name: Add Android platform
+        run: |
+          # Rimuove la cartella android se esiste già
+          rm -rf android
+          npx cap add android
+
+      - name: Sync Capacitor Android
+        run: npx cap sync android
+
+      - name: Build Android App (APK & AAB)
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+          ./gradlew bundleDebug
+
+      - name: Prepare Android Artifacts
+        run: |
+          mkdir -p android-release
+          cp android/app/build/outputs/apk/debug/app-debug.apk android-release/Radio-RCS-Sicilia.apk || true
+          cp android/app/build/outputs/bundle/debug/app-debug.aab android-release/Radio-RCS-Sicilia.aab || true
+
+      - name: Build Web for Aruba (Root)
+        run: |
+          export NEXT_PUBLIC_IS_APP=false
+          export NEXT_PUBLIC_BASE_PATH=""
+          npm run build
+        env:
+          NEXT_PUBLIC_IS_APP: "false"
+          NEXT_PUBLIC_BASE_PATH: ""
+
+      - name: Generate .htaccess for Subfolder
+        run: |-
+          mkdir -p out-subfolder
+          cp -r out/* out-subfolder/
+          cat << 'EOF' > out-subfolder/.htaccess
+          RewriteEngine On
+          RewriteBase /rcs/
+          RewriteCond %{REQUEST_FILENAME} !-f
+          RewriteCond %{REQUEST_FILENAME} !-d
+          RewriteRule ^(.*)$ index.html [L]
+          ErrorDocument 404 /rcs/index.html
+          EOF
+
+      - name: Generate .htaccess for Root
+        run: |-
+          cat << 'EOF' > out/.htaccess
+          RewriteEngine On
+          RewriteCond %{REQUEST_FILENAME} !-f
+          RewriteCond %{REQUEST_FILENAME} !-d
+          RewriteRule ^(.*)$ index.html [L]
+          ErrorDocument 404 /index.html
+          EOF
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Radio-RCS-Sicilia-FULL-RELEASE
+          path: |
+            out/
+            out-subfolder/
+            android-release/
