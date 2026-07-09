@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
   JAVA_VERSION: '21'
   GRADLE_OPTS: '-Xmx2048m -XX:+UseG1GC'
 
@@ -29,12 +29,13 @@ jobs:
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
 
-      - name: ☕ Set up Java with caching
+      - name: ☕ Set up Java (senza cache automatica)
         uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'zulu'
-          cache: 'gradle'
+          # Rimuoviamo cache: 'gradle' perché la cartella android non esiste ancora in questa fase
+          # Capacitor la genera dinamicamente più avanti nel processo.
 
       - name: 📦 Install dependencies
         run: npm ci --prefer-offline --no-audit
